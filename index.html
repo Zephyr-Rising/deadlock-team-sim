@@ -113,6 +113,28 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 #lane-list .li { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 5.4em; }
 .empty-note { color: var(--ink-3); font-size: 14px; padding: 8px 0; }
 
+/* All 15 lane splits */
+.splits-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-top: 8px; }
+.seg2 { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg2 button { border: 0; border-radius: 0; padding: 5px 10px; font-size: 13px; color: var(--ink-2); background: var(--surface); }
+.seg2 button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.splits { display: grid; }
+.sp { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) 7.5em 7.5em; gap: 10px; align-items: center; padding: 6px 6px; border-bottom: 1px solid var(--line); border-radius: 6px; cursor: pointer; text-align: left; font: inherit; color: inherit; background: none; border-left: 0; border-right: 0; border-top: 0; width: 100%; }
+.sp:hover { background: var(--bg); }
+.sp.cur { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.sp .rk { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 13px; text-align: right; }
+.sp .duos { display: flex; flex-wrap: wrap; gap: 4px 14px; min-width: 0; }
+.sp .duo { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.sp .duo img { width: 22px; height: 22px; border-radius: 50%; background: var(--plate); }
+.sp .duo .plus { color: var(--ink-3); font-weight: 400; }
+.sp .num2 { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.sp .num2 small { display: block; font-weight: 500; font-size: 12px; color: var(--ink-3); }
+.sp .num2 small.pos { color: var(--good); } .sp .num2 small.neg { color: var(--bad); }
+.sp.head { cursor: default; font-size: 12px; color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; padding-block: 2px; }
+.sp.head:hover { background: none; }
+.sp.head > span:nth-child(n+3) { text-align: right; }
+.best { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--good); margin-left: 4px; }
+
 /* Picks */
 .picks .li { grid-template-columns: minmax(9em, 13em) minmax(0, 1fr) 5.4em; cursor: pointer; }
 .picks .li:hover { background: var(--bg); }
@@ -129,6 +151,20 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 .chart .grid { stroke: var(--line); }
 .chart .axis { fill: var(--ink-3); font: 11px var(--body); font-variant-numeric: tabular-nums; }
 .chart .atitle { fill: var(--ink-2); font: 500 12px var(--body); }
+/* What each hero adds */
+.mem { display: grid; }
+.mrow { display: grid; grid-template-columns: minmax(11em, 15em) minmax(0, 1fr) 6.5em; gap: 14px; align-items: center; padding-block: 9px; border-bottom: 1px solid var(--line); }
+.mrow:last-child { border-bottom: 0; }
+.mrow .who img { width: 36px; height: 36px; }
+.mrow .who { font-size: 15px; }
+.mrow .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 17px; line-height: 1.2; }
+.mrow .v small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-3); }
+.mbar { display: grid; gap: 6px; min-width: 0; }
+.mchips { display: flex; flex-wrap: wrap; gap: 4px; }
+.mchip { font-size: 12px; padding: 1px 8px; border-radius: 999px; line-height: 1.6; white-space: nowrap; }
+.mchip.p { background: var(--good-soft); color: var(--good); } .mchip.n { background: var(--bad-soft); color: var(--bad); }
+.mchip.l { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+
 /* Team profile */
 .prof-sum { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink); max-width: 72ch; }
 .prof-sum b.pos, .prof-sum b.neg { font-weight: 600; }
@@ -184,6 +220,18 @@ footer { color: var(--ink-3); font-size: 13px; }
 footer a { color: var(--accent); }
 
 @media (max-width: 720px) {
+  .mrow { grid-template-columns: minmax(0, 1fr) 5.5em; gap: 6px 10px; }
+  .mrow > .who { grid-column: 1 / 2; } .mrow > .v { grid-column: 2; grid-row: 1; } .mrow > .mbar { grid-column: 1 / -1; }
+  /* Phones: duos on top (full width), then win chance and souls side by side. */
+  .sp { grid-template-columns: 1.6em minmax(0, 1fr) minmax(0, 1fr); gap: 4px 8px; padding-block: 8px; }
+  .sp .rk { grid-row: 1 / span 2; align-self: start; padding-top: 2px; }
+  .sp .duos { grid-column: 2 / -1; flex-direction: column; gap: 3px; }
+  .sp .duo { font-size: 13px; }
+  .sp .duos .tag { align-self: flex-start; margin-left: 0; }
+  .sp .num2 { text-align: left; font-size: 14px; }
+  .sp.head { display: none; }
+  .sp .num2::before { display: block; font-size: 11px; font-weight: 400; color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; }
+  .sp .num2.w::before { content: "Win chance"; } .sp .num2.s::before { content: "Souls @15:00"; }
   .prow { grid-template-columns: minmax(0, 1fr) 7.5em; gap: 4px 10px; }
   .prow > .nm { grid-column: 1 / -1; }
   .lanes { grid-template-columns: 1fr; }
@@ -238,6 +286,13 @@ footer a { color: var(--accent); }
     </div>
   </section>
 
+  <section class="card" aria-labelledby="mem-h">
+    <h2 id="mem-h">What each hero adds</h2>
+    <p>How much the team's win chance would drop if this hero were swapped for an average one, split into the hero's <b>own strength</b> and their <b>synergy with these teammates</b> (their pairs, plus the extra from their lane partner). The tags show where the hero stands out in the team profile below.</p>
+    <div class="legend"><span><i style="background:var(--context)"></i>own strength</span><span><i style="background:var(--good)"></i>synergy with this team</span><span><i style="background:var(--bad)"></i>clashes with this team</span></div>
+    <div class="mem" id="mem"></div>
+  </section>
+
   <section class="card" aria-labelledby="prof-h">
     <h2 id="prof-h">Team profile</h2>
     <p class="prof-sum" id="prof-sum"></p>
@@ -274,6 +329,15 @@ footer a { color: var(--accent); }
     <p>For each duo: how many souls it's expected to be up or down on the duo it faces at 15:00, against an average duo. The estimate adds up both heroes' lane strength and what this pairing has done beyond that. Lane leads matter: across these matches every 1,000-soul team lead at 15:00 went with <span id="lead-worth">—</span>.</p>
     <div class="list" id="lane-list"></div>
     <p class="hint" id="lane-note"></p>
+    <div class="splits-head">
+      <h3 id="splits-h">All 15 lane splits of your six</h3>
+      <div class="seg2" role="group" aria-label="Sort splits by">
+        <button type="button" data-sort="win" aria-pressed="true">Sort by win chance</button>
+        <button type="button" data-sort="souls" aria-pressed="false">Sort by souls at 15:00</button>
+      </div>
+    </div>
+    <p class="hint" id="splits-note">Same heroes, different lane partners. Numbers are against the split you have now; click a row to use that split.</p>
+    <div class="splits" id="splits"></div>
   </section>
 
   <div class="two">
@@ -648,6 +712,115 @@ function renderProfile() {
   $("#who-grid").innerHTML = s + "</tbody></table>";
 }
 
+// ---------- what each hero adds ----------
+// Profile tags: a hero stands out on a dimension when its effect is far from the other heroes'
+// (z-score across all heroes). Up to two strengths and one weakness are shown per hero.
+const TAGS = {
+  laning: ["strong laner", "weak laner"], fights: ["wins fights", "loses fights"],
+  structures: ["takes structures", "loses structures"], midboss: ["takes mid-boss", "concedes mid-boss"],
+  fast: ["closes games early", "struggles early"], long: ["wins long games", "fades in long games"],
+  scaling: ["leans late", "leans early"],
+};
+let heroZ = null;
+function heroZScores() {
+  const z = H.map(() => ({}));
+  for (const d of D.model.profile) {
+    const v = H.map((_, h) => heroRaw(h, d.key)), mu = v.reduce((a, b) => a + b, 0) / v.length;
+    const sd = Math.sqrt(v.reduce((a, b) => a + (b - mu) ** 2, 0) / v.length) || 1;
+    v.forEach((x, h) => { z[h][d.key] = (x - mu) / sd; });
+  }
+  return z;
+}
+function renderMembers() {
+  heroZ = heroZ || heroZScores();
+  const m = D.model.syn_mean, full = score(slots), pFull = sig(full.total - m);
+  const rows = [];
+  slots.forEach((h, s) => {
+    if (h == null) return;
+    const own = H[h].strength;
+    let syn = 0;
+    slots.forEach((o, t) => { if (o != null && t !== s) syn += pairSyn(h, o); });
+    const mate = slots[partnerSlot(s)];
+    if (mate != null) { const lp = laneMap.get(key(h, mate)); if (lp) syn += lp[6]; }
+    const without = slots.slice(); without[s] = null;
+    const total = 100 * (pFull - sig(score(without).total - m));
+    // Split the drop between own strength and synergy in proportion to their log-odds parts.
+    const denom = Math.abs(own) + Math.abs(syn) || 1;
+    const scaleF = total / ((own + syn) || 1e-9);
+    const ownPts = Math.abs(own + syn) < 1e-9 ? 0 : own * scaleF, synPts = Math.abs(own + syn) < 1e-9 ? 0 : syn * scaleF;
+    const z = heroZ[h];
+    const good = Object.keys(TAGS).filter(k => z[k] >= 0.8).sort((a, b) => z[b] - z[a]).slice(0, 2);
+    const bad = Object.keys(TAGS).filter(k => k !== "scaling" && z[k] <= -0.8).sort((a, b) => z[a] - z[b]).slice(0, 1);
+    if (z.scaling <= -0.8 && !good.includes("scaling")) bad.push("scaling");
+    rows.push({ h, s, total, ownPts, synPts, good, bad: bad.slice(0, 2), z });
+  });
+  if (!rows.length) { $("#mem").innerHTML = '<div class="empty-note">Pick some heroes.</div>'; return; }
+  rows.sort((a, b) => b.total - a.total);
+  const max = Math.max(1, ...rows.map(r => Math.abs(r.ownPts) + Math.abs(r.synPts)));
+  const pct = v => 50 * v / max;
+  $("#mem").innerHTML = rows.map(r => {
+    const o1 = 50 + pct(r.ownPts), s1 = o1 + pct(r.synPts);
+    const seg = (x0, x1, kind) => `<div class="seg ${kind}" style="left:${Math.min(x0, x1).toFixed(2)}%;width:${Math.abs(x1 - x0).toFixed(2)}%"></div>`;
+    const chip = (k, good) => {
+      const lbl = TAGS[k][good ? 0 : 1], cl = k === "scaling" ? "l" : good ? "p" : "n";
+      return `<span class="mchip ${cl}" title="${k} effect ${r.z[k] >= 0 ? "+" : ""}${r.z[k].toFixed(1)} SD vs other heroes">${lbl}</span>`;
+    };
+    const chips = r.good.map(k => chip(k, k !== "scaling" || r.z.scaling > 0)).concat(r.bad.map(k => chip(k, false))).join("");
+    return `<div class="mrow"><div class="who">${img(r.h, 36)}<span class="t">${esc(H[r.h].name)}<small>${LANES[laneOf(r.s)]} · own ${fmtPts(r.ownPts, 2)} · synergy ${fmtPts(r.synPts, 2)}</small></span></div>
+      <div class="mbar"><div class="stack"><div class="mid"></div>${seg(50, o1, "own " + (r.ownPts >= 0 ? "p" : "n"))}${seg(o1, s1, "syn " + (r.synPts >= 0 ? "p" : "n"))}</div>
+        <div class="mchips">${chips || '<span class="hint">no standout profile traits</span>'}</div></div>
+      <div class="v ${cls(r.total)}">${fmtPts(r.total)}<small>pts if swapped out</small></div></div>`;
+  }).join("");
+}
+
+// ---------- all 15 lane splits ----------
+let splitSort = "win";
+const fmtD = v => (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "±") + Math.abs(v).toFixed(2);
+function pairings(items) {            // every way to split an even list into unordered pairs
+  if (!items.length) return [[]];
+  const [a, ...rest] = items, out = [];
+  rest.forEach((b, k) => { for (const tail of pairings(rest.filter((_, i) => i !== k))) out.push([[a, b], ...tail]); });
+  return out;
+}
+const splitKey = duos => duos.map(d => d.slice().sort((x, y) => x - y).join("-")).sort().join("|");
+function renderSplits() {
+  const box = $("#splits"), heroes = slots.filter(h => h != null);
+  if (heroes.length < 6) { box.innerHTML = `<div class="empty-note">Pick all six heroes to compare their lane splits.</div>`; return; }
+  const m = D.model.syn_mean;
+  const curKey = splitKey([[slots[0], slots[1]], [slots[2], slots[3]], [slots[4], slots[5]]]);
+  const rows = pairings(heroes).map(duos => {
+    const sl = duos.flat();
+    return { duos, sl, key: splitKey(duos), win: 100 * sig(score(sl).total - m), souls: [0, 1, 2].reduce((a, k) => a + laneGap(sl, k).total, 0) };
+  });
+  const cur = rows.find(r => r.key === curKey);
+  const bestWin = Math.max(...rows.map(r => r.win)), bestSouls = Math.max(...rows.map(r => r.souls));
+  rows.sort((a, b) => splitSort === "win" ? b.win - a.win : b.souls - a.souls);
+  const spreadW = bestWin - Math.min(...rows.map(r => r.win)), spreadS = bestSouls - Math.min(...rows.map(r => r.souls));
+  $("#splits-note").innerHTML = `Same heroes, different lane partners. Best to worst: <b>${spreadW.toFixed(2)} pts</b> of win chance and <b>${Math.round(spreadS).toLocaleString("en-US")} souls</b> at 15:00 (whole team). Numbers are against the split you have now; click a row to use that split. On held-out matches about three-quarters of the predicted souls difference showed up; the win difference is too small to confirm (it could be close to zero).`;
+  let s = `<div class="sp head" aria-hidden="true"><span>#</span><span>Lane partners</span><span>Win chance</span><span>Souls @15:00</span></div>`;
+  rows.forEach((r, i) => {
+    const dW = r.win - cur.win, dS = r.souls - cur.souls, isCur = r.key === curKey;
+    const duos = r.duos.map(([a, b]) => `<span class="duo">${img(a, 22)}${esc(H[a].name)}<span class="plus">+</span>${img(b, 22)}${esc(H[b].name)}</span>`).join("");
+    s += `<button type="button" class="sp${isCur ? " cur" : ""}" data-i="${i}" aria-label="Use split ${i + 1}${isCur ? " (current)" : ""}">
+      <span class="rk">${i + 1}</span><span class="duos">${duos}${isCur ? '<span class="tag">current</span>' : ""}</span>
+      <span class="num2 w">${r.win.toFixed(1)}%${r.win === bestWin ? '<span class="best">BEST</span>' : ""}<small class="${isCur ? "" : dW >= 0.005 ? "pos" : dW <= -0.005 ? "neg" : ""}">${isCur ? "now" : fmtD(dW) + " pts"}</small></span>
+      <span class="num2 s">${fmtSouls(r.souls)}${r.souls === bestSouls ? '<span class="best">BEST</span>' : ""}<small class="${isCur ? "" : dS >= 0.5 ? "pos" : dS <= -0.5 ? "neg" : ""}">${isCur ? "now" : fmtSouls(dS)}</small></span></button>`;
+  });
+  box.innerHTML = s;
+  box.querySelectorAll("button.sp").forEach(b => b.addEventListener("click", () => {
+    const r = rows[+b.dataset.i];
+    // Keep each duo in the lane it already uses where possible, so lanes don't jump around.
+    const order = [];
+    for (let k = 0; k < 3; k++) {
+      const d = r.duos.find(d => !order.includes(d) && (d.includes(slots[2 * k]) || d.includes(slots[2 * k + 1])));
+      order.push(d || r.duos.find(d => !order.includes(d)));
+    }
+    const fixed = []; for (const d of order) if (!fixed.includes(d)) fixed.push(d);
+    for (const d of r.duos) if (!fixed.includes(d)) fixed.push(d);
+    slots = fixed.slice(0, 3).flat(); update();
+  }));
+}
+
 // ---------- graphs ----------
 const pp = s => 100 * (sig(s) - 0.5);           // pair synergy (log-odds) -> win-chance points
 const EDGE_MAX = 1.2;                           // points that get the thickest line
@@ -813,7 +986,7 @@ function loadHash() {
 }
 
 function update() {
-  renderLanes(); renderRoster(); renderResult(); renderProfile(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
+  renderLanes(); renderRoster(); renderResult(); renderMembers(); renderProfile(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderSplits(); renderPairs(); renderPicks(); saveHash();
 }
 
 function greedyFill() {
@@ -861,6 +1034,11 @@ async function main() {
   chartSyn(); chartLane();
   $("#net-n").addEventListener("input", e => { $("#net-n-v").textContent = e.target.value; renderNetwork(); });
   $("#net-mine").addEventListener("change", renderNetwork);
+  document.querySelectorAll(".seg2 button").forEach(b => b.addEventListener("click", () => {
+    splitSort = b.dataset.sort;
+    document.querySelectorAll(".seg2 button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    renderSplits();
+  }));
   let lastPhone = innerWidth < 640;
   addEventListener("resize", () => {
     const phone = innerWidth < 640;
