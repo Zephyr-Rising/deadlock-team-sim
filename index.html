@@ -288,7 +288,7 @@ footer a { color: var(--accent); }
 
   <section class="card" aria-labelledby="mem-h">
     <h2 id="mem-h">What each hero adds</h2>
-    <p>How much the team's win chance would drop if this hero were swapped for an average one, split into the hero's <b>own strength</b> and their <b>synergy with these teammates</b> (their pairs, plus the extra from their lane partner). The tags show where the hero stands out in the team profile below.</p>
+    <p>How many points of win chance each hero adds compared with an average hero in the same slot (positive = the team is stronger with them, negative = it would do better with an average hero), split into the hero's <b>own strength</b> and their <b>synergy with these teammates</b> (their pairs, plus the extra from their lane partner). The tags show where the hero stands out in the team profile below.</p>
     <div class="legend"><span><i style="background:var(--context)"></i>own strength</span><span><i style="background:var(--good)"></i>synergy with this team</span><span><i style="background:var(--bad)"></i>clashes with this team</span></div>
     <div class="mem" id="mem"></div>
   </section>
@@ -769,7 +769,7 @@ function renderMembers() {
     return `<div class="mrow"><div class="who">${img(r.h, 36)}<span class="t">${esc(H[r.h].name)}<small>${LANES[laneOf(r.s)]} · own ${fmtPts(r.ownPts, 2)} · synergy ${fmtPts(r.synPts, 2)}</small></span></div>
       <div class="mbar"><div class="stack"><div class="mid"></div>${seg(50, o1, "own " + (r.ownPts >= 0 ? "p" : "n"))}${seg(o1, s1, "syn " + (r.synPts >= 0 ? "p" : "n"))}</div>
         <div class="mchips">${chips || '<span class="hint">no standout profile traits</span>'}</div></div>
-      <div class="v ${cls(r.total)}">${fmtPts(r.total)}<small>pts if swapped out</small></div></div>`;
+      <div class="v ${cls(r.total)}">${fmtPts(r.total)}<small>pts added vs an average hero</small></div></div>`;
   }).join("");
 }
 
