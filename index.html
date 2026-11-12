@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deadlock Team Synergy</title>
+<meta name="description" content="Build a six-hero Deadlock team in three lanes and see how hero pairings and lane partners move its win chance, from 1.5M recent matches.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* One working column. Better / worse than average runs blue <- grey -> orange everywhere
+   (blue = helps your team, orange = hurts), always with a +/- number beside it. */
+:root {
+  --bg: #f4f5f7; --surface: #ffffff; --ink: #15171b; --ink-2: #4d525c; --ink-3: #7c818b;
+  --line: #e2e4e9; --accent: #1c5cab; --plate: #e3e6eb; --context: #c4c8cf;
+  --good: #1c5cab; --bad: #c4511f; --good-soft: #dfe9f6; --bad-soft: #f8e3d9;
+  --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #1a1c21; --ink: #eceef2; --ink-2: #b4b9c3; --ink-3: #868b95; --line: #2b2e35;
+    --accent: #6da7ec; --plate: #c9ced6; --context: #41454d;
+    --good: #5c9be6; --bad: #e0703f; --good-soft: #1c2a3d; --bad-soft: #3a2419;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #1a1c21; --ink: #eceef2; --ink-2: #b4b9c3; --ink-3: #868b95; --line: #2b2e35;
+  --accent: #6da7ec; --plate: #c9ced6; --context: #41454d;
+  --good: #5c9be6; --bad: #e0703f; --good-soft: #1c2a3d; --bad-soft: #3a2419;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.page { max-width: 1080px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: 0.01em; margin: 0; line-height: 1.05; text-wrap: balance; }
+h1 { font-size: clamp(36px, 7vw, 52px); }
+h2 { font-size: 28px; }
+h3 { font-size: 21px; }
+header { display: grid; gap: 8px; }
+.lede { margin: 0; max-width: 70ch; color: var(--ink-2); }
+.scope { margin: 0; color: var(--ink-3); font-size: 13px; font-variant-numeric: tabular-nums; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.card > p { margin: 0; color: var(--ink-2); max-width: 72ch; }
+.hint { color: var(--ink-3); font-size: 13px; margin: 0; }
+.label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 18px; }
+button { font: 500 14px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--ink-3); }
+button:focus-visible, input:focus-visible, select:focus-visible, .slot:focus-visible, .hero:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="search"], select { font: 400 14px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px; min-width: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.pos { color: var(--good); } .neg { color: var(--bad); } .zero { color: var(--ink-3); }
+
+/* --- Team builder --- */
+.lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.lane { border: 1px solid var(--line); border-radius: 9px; padding: 10px; display: grid; gap: 8px; background: var(--bg); }
+.lane-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lane-head b { font-family: var(--display); font-size: 19px; font-weight: 800; }
+.lane-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.slot { position: relative; display: grid; justify-items: center; gap: 4px; padding: 8px 4px 6px; border-radius: 8px; border: 1.5px dashed var(--context); background: var(--surface); cursor: pointer; min-height: 92px; align-content: center; text-align: center; font: inherit; color: inherit; }
+.slot.filled { border-style: solid; border-color: var(--line); }
+.slot.active { border: 2px solid var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.slot img { width: 52px; height: 52px; border-radius: 50%; background: var(--plate); }
+.slot .nm { font-size: 13px; font-weight: 500; line-height: 1.2; overflow-wrap: anywhere; }
+.slot .empty { font-size: 12px; color: var(--ink-3); }
+.slot .x { position: absolute; top: 3px; right: 5px; font-size: 15px; line-height: 1; color: var(--ink-3); padding: 2px 4px; border-radius: 4px; }
+.slot .x:hover { color: var(--bad); background: var(--bad-soft); }
+.lane-sum { font-size: 13px; color: var(--ink-2); line-height: 1.35; min-height: 2.7em; }
+
+.roster-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.roster-bar input { flex: 1 1 12em; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+.hero { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border: 1px solid transparent; border-radius: 8px; background: none; cursor: pointer; font: inherit; color: inherit; }
+.hero:hover { border-color: var(--line); background: var(--bg); }
+.hero img { width: 44px; height: 44px; border-radius: 50%; background: var(--plate); }
+.hero span { font-size: 12px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.hero[disabled] { opacity: 0.3; cursor: default; }
+.hero[hidden] { display: none; }
+
+/* --- Result --- */
+.result { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 18px 28px; align-items: start; }
+.big { font-family: var(--display); font-weight: 800; font-size: 64px; line-height: 0.95; font-variant-numeric: tabular-nums; }
+.big small { font-size: 30px; }
+.steps { display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: minmax(8em, 13em) minmax(0, 1fr) 5.2em; gap: 12px; align-items: center; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.step:last-child { border-bottom: 0; }
+.step .nm { font-weight: 500; font-size: 14px; line-height: 1.3; }
+.step .nm small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; }
+.step .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.track { position: relative; height: 16px; }
+.track .mid { position: absolute; left: 50%; top: -5px; bottom: -5px; width: 1px; background: var(--ink-3); }
+.track .bar { position: absolute; top: 3px; height: 10px; }
+.track .bar.p { background: var(--good); border-radius: 0 3px 3px 0; }
+.track .bar.n { background: var(--bad); border-radius: 3px 0 0 3px; }
+
+/* --- Lists of pairs / picks --- */
+.list { display: grid; }
+.li { display: grid; grid-template-columns: minmax(10em, 15em) minmax(0, 1fr) 5.4em; gap: 12px; align-items: center; padding-block: 6px; border-bottom: 1px solid var(--line); }
+.li:last-child { border-bottom: 0; }
+.who { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.25; }
+.who img { width: 26px; height: 26px; border-radius: 50%; background: var(--plate); flex: none; }
+.who .t { min-width: 0; overflow-wrap: anywhere; }
+.who .t small { display: block; color: var(--ink-3); font-weight: 400; font-size: 12px; }
+.li .v { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.li .v small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+#lane-list .li { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 5.4em; }
+.empty-note { color: var(--ink-3); font-size: 14px; padding: 8px 0; }
+
+/* Picks */
+.picks .li { grid-template-columns: minmax(9em, 13em) minmax(0, 1fr) 5.4em; cursor: pointer; }
+.picks .li:hover { background: var(--bg); }
+.stack { position: relative; height: 16px; }
+.stack .mid { position: absolute; left: 50%; top: -5px; bottom: -5px; width: 1px; background: var(--ink-3); }
+.stack .seg { position: absolute; top: 3px; height: 10px; }
+.stack .seg.own.p { background: var(--context); } .stack .seg.own.n { background: var(--context); }
+.stack .seg.syn.p { background: var(--good); } .stack .seg.syn.n { background: var(--bad); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-3); }
+.legend i { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+/* Charts */
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); }
+.chart .axis { fill: var(--ink-3); font: 11px var(--body); font-variant-numeric: tabular-nums; }
+.chart .atitle { fill: var(--ink-2); font: 500 12px var(--body); }
+.notes { margin: 0; padding-left: 1.2em; color: var(--ink-2); display: grid; gap: 6px; max-width: 78ch; }
+footer { color: var(--ink-3); font-size: 13px; }
+footer a { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .lanes { grid-template-columns: 1fr; }
+  .result { grid-template-columns: 1fr; }
+  .step { grid-template-columns: minmax(7em, 1fr) minmax(0, 1fr) 4.6em; }
+  .li, .picks .li { grid-template-columns: minmax(8em, 1.2fr) minmax(0, 1fr) 4.8em; gap: 8px; }
+  .big { font-size: 56px; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <h1>Deadlock Team Synergy</h1>
+    <p class="lede">Put six heroes into three lanes and see how the team's win chance moves: first from each hero's own strength, then from how every pair of them has done together, then from the lane partners you chose. Missing slots count as an average hero.</p>
+    <p class="scope" id="scope">Loading match data…</p>
+  </header>
+
+  <section class="card" aria-labelledby="build-h">
+    <div class="row">
+      <h2 id="build-h">Your team</h2>
+      <div class="roster-bar" style="flex:0 1 auto">
+        <button type="button" id="btn-best">Fill with best picks</button>
+        <button type="button" id="btn-random">Random</button>
+        <button type="button" id="btn-clear">Clear</button>
+      </div>
+    </div>
+    <div class="lanes" id="lanes"></div>
+    <p class="hint" id="build-hint">Click a slot, then a hero. Select a filled slot, then click another filled slot to swap them; × removes a hero. The link in your address bar keeps the team.</p>
+    <div class="roster-bar">
+      <input type="search" id="search" placeholder="Search heroes" aria-label="Search heroes">
+      <select id="sort" aria-label="Sort heroes">
+        <option value="name">A–Z</option>
+        <option value="fit">Best fit for the selected slot</option>
+      </select>
+    </div>
+    <div class="roster" id="roster"></div>
+  </section>
+
+  <section class="card" aria-labelledby="res-h">
+    <h2 id="res-h">Estimated win chance</h2>
+    <div class="result">
+      <div>
+        <div class="label">vs an average team</div>
+        <div class="big" id="big">50<small>%</small></div>
+        <p class="hint" id="big-note"></p>
+      </div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="lane-h">
+    <h2 id="lane-h">Laning phase (first 15 minutes)</h2>
+    <p>For each duo: how many souls it's expected to be up or down on the duo it faces at 15:00, against an average duo. The estimate adds up both heroes' lane strength and what this pairing has done beyond that. Lane leads matter: across these matches every 1,000-soul team lead at 15:00 went with <span id="lead-worth">—</span>.</p>
+    <div class="list" id="lane-list"></div>
+    <p class="hint" id="lane-note"></p>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-labelledby="pairs-h">
+      <h2 id="pairs-h">All 15 pairs</h2>
+      <p>How much each pair adds to or takes from the team's win chance compared with what the two heroes' own strengths predict. <span class="tag">lane</span> marks lane partners.</p>
+      <div class="list" id="pair-list"></div>
+    </section>
+    <section class="card picks" aria-labelledby="picks-h">
+      <h2 id="picks-h">Best next pick</h2>
+      <p id="picks-for">Heroes ranked by the team's win chance with them in the selected slot. Click one to add it.</p>
+      <div class="legend"><span><i style="background:var(--context)"></i>hero's own strength</span><span><i style="background:var(--good)"></i>synergy with your picks</span><span><i style="background:var(--bad)"></i>clashes with your picks</span></div>
+      <label class="hint"><input type="checkbox" id="syn-only"> Rank by synergy only</label>
+      <div class="list" id="pick-list"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="explore-h">
+    <div class="row">
+      <h2 id="explore-h">One hero's partners</h2>
+      <select id="explore" aria-label="Hero to explore"></select>
+    </div>
+    <div class="two">
+      <div class="grid-col">
+        <h3>Whole match</h3>
+        <p class="hint">Best and worst teammates, win-chance points.</p>
+        <div class="list" id="ex-match"></div>
+      </div>
+      <div class="grid-col">
+        <h3>As lane partner</h3>
+        <p class="hint">Expected souls at 15:00 vs an average duo (both heroes' lane strength plus their duo synergy).</p>
+        <div class="list" id="ex-lane"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="check-h">
+    <h2 id="check-h">How far to trust it</h2>
+    <p>Everything was estimated on half the matches and checked on the other half, which the model never saw.</p>
+    <div class="two">
+      <div class="chart">
+        <div class="label">Synergy check: win rate by synergy gap between the teams</div>
+        <div id="chart-syn"></div>
+        <div class="legend"><span><i style="background:var(--context)"></i>heroes' strength alone predicts</span><span><i style="background:var(--accent)"></i>with synergy predicts</span><span><i style="background:var(--ink)"></i>actual</span></div>
+      </div>
+      <div class="chart">
+        <div class="label">Lane check: souls gap at 15:00, predicted vs actual</div>
+        <div id="chart-lane"></div>
+        <div class="legend"><span><i style="background:var(--context)"></i>perfect prediction</span><span><i style="background:var(--accent)"></i>actual (tenths of lanes)</span></div>
+      </div>
+    </div>
+    <ul class="notes" id="notes"></ul>
+  </section>
+
+  <footer id="footer">Data: <a href="https://deadlock-api.com">deadlock-api.com</a> public match lake. Not affiliated with Valve.</footer>
+</main>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sig = x => 1 / (1 + Math.exp(-x));
+const fmtPts = (v, d = 1) => (v > 0.05 ? "+" : v < -0.05 ? "−" : "±") + Math.abs(v).toFixed(d);
+const fmtSouls = v => (Math.round(v) > 0 ? "+" : Math.round(v) < 0 ? "−" : "±") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const cls = v => v > 0.05 ? "pos" : v < -0.05 ? "neg" : "zero";
+// Standard normal CDF (Abramowitz & Stegun 7.1.26), for "chance to be ahead at 15:00".
+function phi(x) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x / 2);
+  return x >= 0 ? (1 + y) / 2 : (1 - y) / 2;
+}
+
+let D, H, pairMap, laneMap, byId;
+// slots[0..5]: hero index or null. Lane k = slots 2k, 2k+1.
+let slots = [null, null, null, null, null, null];
+let active = 0;      // selected slot
+const LANES = ["Lane 1", "Lane 2", "Lane 3"];
+
+const key = (i, j) => i < j ? i * 1000 + j : j * 1000 + i;
+const pairSyn = (i, j) => { const p = pairMap.get(key(i, j)); return p ? p[5] : 0; };
+const laneOf = s => Math.floor(s / 2);
+const partnerSlot = s => s ^ 1;
+
+// Team score on the log-odds scale, split into the three steps the page shows.
+function score(sl) {
+  let base = 0, syn = 0, lane = 0;
+  const picked = sl.map((h, s) => [h, s]).filter(([h]) => h != null);
+  for (const [h] of picked) base += H[h].strength;
+  for (let a = 0; a < picked.length; a++)
+    for (let b = a + 1; b < picked.length; b++) syn += pairSyn(picked[a][0], picked[b][0]);
+  for (let k = 0; k < 3; k++) {
+    const a = sl[2 * k], b = sl[2 * k + 1];
+    if (a != null && b != null) { const lp = laneMap.get(key(a, b)); if (lp) lane += lp[6]; }
+  }
+  return { base, syn, lane, total: base + syn + lane };
+}
+// Expected souls gap at 15:00 for the duo in lane k vs an average duo (missing hero = 0).
+function laneGap(sl, k) {
+  const a = sl[2 * k], b = sl[2 * k + 1];
+  let own = (a != null ? H[a].lane_souls : 0) + (b != null ? H[b].lane_souls : 0), syn = 0, rec = null;
+  if (a != null && b != null) { rec = laneMap.get(key(a, b)); if (rec) syn = rec[5]; }
+  return { own, syn, total: own + syn, rec };
+}
+
+function img(h, size) { return H[h].icon ? `<img src="${H[h].icon}" alt="" width="${size}" height="${size}" loading="lazy">` : ""; }
+
+// ---------- rendering ----------
+function renderLanes() {
+  const wrap = $("#lanes"); wrap.innerHTML = "";
+  for (let k = 0; k < 3; k++) {
+    const lane = el("div", "lane");
+    const g = laneGap(slots, k);
+    const both = slots[2 * k] != null && slots[2 * k + 1] != null;
+    lane.append(el("div", "lane-head", `<b>${LANES[k]}</b><span class="hint num">${both ? `<span class="${cls(g.total)}">${fmtSouls(g.total)}</span> souls @15:00` : "duo"}</span>`));
+    const ls = el("div", "lane-slots");
+    for (const s of [2 * k, 2 * k + 1]) {
+      const h = slots[s];
+      const b = el("button", "slot" + (h != null ? " filled" : "") + (s === active ? " active" : ""));
+      b.type = "button";
+      b.setAttribute("aria-label", h != null ? `${H[h].name} in ${LANES[k]}, select to swap or replace` : `Empty slot in ${LANES[k]}`);
+      b.innerHTML = h != null
+        ? `${img(h, 52)}<span class="nm">${esc(H[h].name)}</span><span class="x" data-remove="${s}" title="Remove" aria-hidden="true">×</span>`
+        : `<span class="empty">${s === active ? "pick a hero" : "empty"}</span>`;
+      b.addEventListener("click", ev => {
+        if (ev.target.dataset.remove != null) { slots[s] = null; active = s; return update(); }
+        if (s === active) return;
+        // A filled slot was selected and another slot clicked: swap them.
+        if (slots[active] != null && slots[s] != null) [slots[active], slots[s]] = [slots[s], slots[active]];
+        active = s; update();
+      });
+      ls.append(b);
+    }
+    lane.append(ls);
+    wrap.append(lane);
+  }
+}
+
+function fitScore(h) {   // team win chance with hero h placed in the active slot
+  const t = slots.slice(); t[active] = h; return sig(score(t).total - D.model.syn_mean);
+}
+
+function renderRoster() {
+  const q = $("#search").value.trim().toLowerCase();
+  const order = H.map((_, i) => i);
+  if ($("#sort").value === "fit") order.sort((a, b) => fitScore(b) - fitScore(a));
+  else order.sort((a, b) => H[a].name.localeCompare(H[b].name));
+  const r = $("#roster"); r.innerHTML = "";
+  for (const h of order) {
+    const b = el("button", "hero", `${img(h, 44)}<span>${esc(H[h].name)}</span>`);
+    b.type = "button";
+    b.disabled = slots.includes(h) && slots[active] !== h;
+    b.hidden = q && !H[h].name.toLowerCase().includes(q);
+    b.title = `${H[h].name}: ${(100 * H[h].win_rate).toFixed(1)}% win rate, ${H[h].games.toLocaleString("en-US")} games`;
+    b.addEventListener("click", () => place(h));
+    r.append(b);
+  }
+}
+
+function place(h) {
+  const old = slots.indexOf(h);
+  if (old >= 0) slots[old] = null;
+  slots[active] = h;
+  // Move on to the next empty slot (partner first, so lanes fill as duos).
+  const order = [partnerSlot(active), 0, 1, 2, 3, 4, 5];
+  const next = order.find(s => slots[s] == null);
+  if (next != null) active = next;
+  update();
+}
+
+function renderResult() {
+  const sc = score(slots), m = D.model.syn_mean;
+  const pBase = sig(sc.base), pSyn = sig(sc.base + sc.syn - m), pAll = sig(sc.total - m);
+  const n = slots.filter(s => s != null).length;
+  $("#big").innerHTML = `${(100 * pAll).toFixed(1)}<small>%</small>`;
+  $("#big-note").textContent = n === 6 ? "All six picked." : `${n} of 6 picked; empty slots count as an average hero.`;
+  const steps = [
+    ["Heroes on their own", "each hero's strength, added up", 100 * (pBase - 0.5)],
+    ["Pair synergy", `${n * (n - 1) / 2} of 15 pairs`, 100 * (pSyn - pBase)],
+    ["Lane partners", "extra for laning together", 100 * (pAll - pSyn)],
+  ];
+  const max = Math.max(4, ...steps.map(s => Math.abs(s[2])));
+  $("#steps").innerHTML = steps.map(([nm, sub, v]) => {
+    const w = 50 * Math.abs(v) / max;
+    return `<div class="step"><div class="nm">${nm}<small>${sub}</small></div>
+      <div class="track"><div class="mid"></div><div class="bar ${v >= 0 ? "p" : "n"}" style="${v >= 0 ? `left:50%` : `left:${50 - w}%`};width:${w}%"></div></div>
+      <div class="v ${cls(v)}">${fmtPts(v)} pts</div></div>`;
+  }).join("");
+}
+
+function renderLaneList() {
+  const sigma = D.model.lane_souls.sigma;
+  const rows = [];
+  for (let k = 0; k < 3; k++) {
+    const a = slots[2 * k], b = slots[2 * k + 1];
+    if (a == null && b == null) { rows.push(`<div class="li"><div class="who"><span class="t">${LANES[k]}<small>empty</small></span></div><div></div><div></div></div>`); continue; }
+    const g = laneGap(slots, k);
+    const names = [a, b].filter(x => x != null).map(x => esc(H[x].name)).join(" + ");
+    const ahead = 100 * phi(g.total / sigma);
+    let sub = `${ahead.toFixed(0)}% chance to be ahead · lane strength ${fmtSouls(g.own)}`;
+    if (a != null && b != null) {
+      sub += g.rec ? ` · duo synergy ${fmtSouls(g.syn)} · ${g.rec[2].toLocaleString("en-US")} lanes together, ahead in ${(100 * g.rec[4]).toFixed(0)}%`
+                   : " · never laned together in this data";
+    } else sub += " · partner slot empty";
+    const w = Math.min(50, 50 * Math.abs(g.total) / 1600);
+    rows.push(`<div class="li"><div class="who">${[a, b].filter(x => x != null).map(x => img(x, 26)).join("")}<span class="t">${LANES[k]}: ${names}<small>${sub}</small></span></div>
+      <div class="track"><div class="mid"></div><div class="bar ${g.total >= 0 ? "p" : "n"}" style="${g.total >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></div></div>
+      <div class="v ${cls(g.total / 100)}">${fmtSouls(g.total)}<small>souls</small></div></div>`);
+  }
+  $("#lane-list").innerHTML = rows.join("");
+}
+
+function renderPairs() {
+  const picked = slots.map((h, s) => [h, s]).filter(([h]) => h != null);
+  const list = [];
+  for (let a = 0; a < picked.length; a++)
+    for (let b = a + 1; b < picked.length; b++) {
+      const [i, si] = picked[a], [j, sj] = picked[b];
+      const p = pairMap.get(key(i, j));
+      list.push({ i, j, lane: laneOf(si) === laneOf(sj), v: p ? 100 * (sig(p[5]) - 0.5) : 0, n: p ? p[2] : 0, p });
+    }
+  list.sort((x, y) => y.v - x.v);
+  const max = Math.max(1, ...list.map(x => Math.abs(x.v)));
+  $("#pair-list").innerHTML = list.length ? list.map(x => {
+    const w = 50 * Math.abs(x.v) / max;
+    const sub = x.p ? `${x.n.toLocaleString("en-US")} games · won ${(100 * x.p[3] / x.n).toFixed(1)}%, expected ${(100 * x.p[4] / x.n).toFixed(1)}%` : "never on the same team";
+    return `<div class="li"><div class="who">${img(x.i, 26)}${img(x.j, 26)}<span class="t">${esc(H[x.i].name)} + ${esc(H[x.j].name)}${x.lane ? '<span class="tag">lane</span>' : ""}<small>${sub}</small></span></div>
+      <div class="track"><div class="mid"></div><div class="bar ${x.v >= 0 ? "p" : "n"}" style="${x.v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></div></div>
+      <div class="v ${cls(x.v)}">${fmtPts(x.v, 2)}<small>pts</small></div></div>`;
+  }).join("") : `<div class="empty-note">Pick at least two heroes.</div>`;
+}
+
+function renderPicks() {
+  const synOnly = $("#syn-only").checked, m = D.model.syn_mean;
+  const cur = slots.slice(); cur[active] = null;
+  const before = score(cur);
+  const cands = H.map((_, h) => h).filter(h => !cur.includes(h)).map(h => {
+    const t = cur.slice(); t[active] = h;
+    const sc = score(t);
+    const own = 100 * (sig(before.total - m + H[h].strength) - sig(before.total - m));
+    const all = 100 * (sig(sc.total - m) - sig(before.total - m));
+    return { h, own, syn: all - own, all };
+  });
+  cands.sort((a, b) => synOnly ? b.syn - a.syn : b.all - a.all);
+  const top = cands.slice(0, 10);
+  const max = Math.max(1, ...top.map(c => Math.max(Math.abs(c.own) + Math.abs(c.syn), Math.abs(c.all))));
+  const k = laneOf(active), mate = slots[partnerSlot(active)];
+  $("#picks-for").innerHTML = `For <b>${LANES[k]}</b>${mate != null ? ` next to <b>${esc(H[mate].name)}</b>` : ""}${slots[active] != null ? `, replacing <b>${esc(H[slots[active]].name)}</b>` : ""}: heroes ranked by the team's win chance with them in that slot. Click one to add it.`;
+  const pct = v => 50 * v / max;
+  $("#pick-list").innerHTML = top.map(c => {
+    // Own strength bar starts at the centre; the synergy bar continues from where it ends.
+    const o0 = 50, o1 = 50 + pct(c.own), s1 = o1 + pct(c.syn);
+    const seg = (x0, x1, kind, sign) => `<div class="seg ${kind} ${sign}" style="left:${Math.min(x0, x1)}%;width:${Math.abs(x1 - x0)}%"></div>`;
+    const sv = (synOnly ? c.syn : c.all);
+    return `<div class="li" data-h="${c.h}" role="button" tabindex="0"><div class="who">${img(c.h, 26)}<span class="t">${esc(H[c.h].name)}<small>own ${fmtPts(c.own, 2)} · synergy ${fmtPts(c.syn, 2)}</small></span></div>
+      <div class="stack"><div class="mid"></div>${seg(o0, o1, "own", c.own >= 0 ? "p" : "n")}${seg(o1, s1, "syn", c.syn >= 0 ? "p" : "n")}</div>
+      <div class="v ${cls(sv)}">${fmtPts(sv, 2)}<small>pts</small></div></div>`;
+  }).join("");
+  for (const row of $("#pick-list").children) {
+    const go = () => place(+row.dataset.h);
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  }
+}
+
+function renderExplore() {
+  const h = +$("#explore").value;
+  const mates = [];
+  for (const p of D.pairs) if (p[0] === h || p[1] === h) mates.push({ o: p[0] === h ? p[1] : p[0], v: 100 * (sig(p[5]) - 0.5), n: p[2], p });
+  mates.sort((a, b) => b.v - a.v);
+  const pick = mates.length > 10 ? [...mates.slice(0, 5), null, ...mates.slice(-5)] : mates;
+  const max = Math.max(1, ...mates.map(x => Math.abs(x.v)));
+  const bar = (v, mx) => { const w = 50 * Math.abs(v) / mx; return `<div class="track"><div class="mid"></div><div class="bar ${v >= 0 ? "p" : "n"}" style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></div></div>`; };
+  $("#ex-match").innerHTML = pick.map(x => x == null ? `<div class="li"><div class="hint">…</div><div></div><div></div></div>` :
+    `<div class="li"><div class="who">${img(x.o, 26)}<span class="t">${esc(H[x.o].name)}<small>${x.n.toLocaleString("en-US")} games</small></span></div>${bar(x.v, max)}<div class="v ${cls(x.v)}">${fmtPts(x.v, 2)}<small>pts</small></div></div>`).join("");
+  const lanes = [];
+  for (const p of D.lane_pairs) if (p[0] === h || p[1] === h) {
+    const o = p[0] === h ? p[1] : p[0];
+    lanes.push({ o, v: H[h].lane_souls + H[o].lane_souls + p[5], syn: p[5], n: p[2] });
+  }
+  lanes.sort((a, b) => b.v - a.v);
+  const lp = lanes.length > 10 ? [...lanes.slice(0, 5), null, ...lanes.slice(-5)] : lanes;
+  const lmax = Math.max(400, ...lanes.map(x => Math.abs(x.v)));
+  $("#ex-lane").innerHTML = lp.map(x => x == null ? `<div class="li"><div class="hint">…</div><div></div><div></div></div>` :
+    `<div class="li"><div class="who">${img(x.o, 26)}<span class="t">${esc(H[x.o].name)}<small>duo synergy ${fmtSouls(x.syn)} · ${x.n.toLocaleString("en-US")} lanes</small></span></div>${bar(x.v, lmax)}<div class="v ${cls(x.v / 100)}">${fmtSouls(x.v)}<small>souls</small></div></div>`).join("");
+}
+
+// ---------- check charts (small inline SVG) ----------
+function chartSyn() {
+  const rows = D.model.synergy_calibration;
+  const W = 460, Hh = 230, L = 44, R = 10, T = 10, B = 38;
+  const ys = rows.flatMap(r => [r.without, r.predicted, r.actual]);
+  const lo = Math.floor(Math.min(...ys) * 100) / 100 - 0.005, hi = Math.ceil(Math.max(...ys) * 100) / 100 + 0.005;
+  const x = i => L + (i + 0.5) * (W - L - R) / rows.length, y = v => T + (hi - v) / (hi - lo) * (Hh - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Win rate by synergy gap decile: predicted with synergy tracks actual; hero strength alone stays flat near 50%">`;
+  for (let v = Math.ceil(lo * 100); v <= Math.floor(hi * 100); v++) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v / 100)}" y2="${y(v / 100)}"/><text class="axis" x="${L - 6}" y="${y(v / 100) + 4}" text-anchor="end">${v}%</text>`;
+  const line = (k, col, w) => `<polyline fill="none" stroke="${col}" stroke-width="${w}" points="${rows.map((r, i) => `${x(i)},${y(r[k])}`).join(" ")}"/>`;
+  s += line("without", "var(--context)", 2.5) + line("predicted", "var(--accent)", 2.5);
+  s += rows.map((r, i) => `<circle cx="${x(i)}" cy="${y(r.actual)}" r="4" fill="var(--ink)"><title>Tenth ${i + 1}: actual ${(100 * r.actual).toFixed(1)}%, predicted ${(100 * r.predicted).toFixed(1)}%, strengths alone ${(100 * r.without).toFixed(1)}%</title></circle>`).join("");
+  s += `<text class="axis" x="${x(0)}" y="${Hh - 20}" text-anchor="middle">worse</text><text class="axis" x="${x(rows.length - 1)}" y="${Hh - 20}" text-anchor="middle">better</text>`;
+  s += `<text class="atitle" x="${(L + W - R) / 2}" y="${Hh - 4}" text-anchor="middle">Team synergy vs opponents' (tenths of held-out matches)</text></svg>`;
+  $("#chart-syn").innerHTML = s;
+}
+function chartLane() {
+  const rows = D.model.lane_souls.calibration;
+  const W = 460, Hh = 230, L = 52, R = 10, T = 10, B = 38;
+  const lim = Math.ceil(Math.max(...rows.flatMap(r => [Math.abs(r.predicted), Math.abs(r.actual)])) / 500) * 500;
+  const x = v => L + (v + lim) / (2 * lim) * (W - L - R), y = v => T + (lim - v) / (2 * lim) * (Hh - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Predicted vs actual lane souls gap at 15 minutes; points lie on the diagonal">`;
+  for (let v = -lim; v <= lim; v += 500) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmtSouls(v)}</text>`;
+  for (let v = -lim; v <= lim; v += 500) s += `<text class="axis" x="${x(v)}" y="${Hh - 22}" text-anchor="middle">${v === 0 ? "0" : (v / 1000).toFixed(1) + "k"}</text>`;
+  s += `<line x1="${x(-lim)}" y1="${y(-lim)}" x2="${x(lim)}" y2="${y(lim)}" stroke="var(--context)" stroke-width="2"/>`;
+  s += rows.map((r, i) => `<circle cx="${x(r.predicted)}" cy="${y(r.actual)}" r="4.5" fill="var(--accent)"><title>Predicted ${fmtSouls(r.predicted)}, actual ${fmtSouls(r.actual)} souls; ahead ${(100 * r.ahead).toFixed(1)}% (estimated ${(100 * r.p_ahead).toFixed(1)}%)</title></circle>`).join("");
+  s += `<text class="atitle" x="${(L + W - R) / 2}" y="${Hh - 4}" text-anchor="middle">Predicted duo souls gap at 15:00</text></svg>`;
+  $("#chart-lane").innerHTML = s;
+}
+
+// ---------- state in the URL ----------
+function saveHash() {
+  const ids = slots.map(h => h == null ? 0 : H[h].id).join(".");
+  history.replaceState(null, "", ids === "0.0.0.0.0.0" ? location.pathname : `#t=${ids}`);
+}
+function loadHash() {
+  const m = location.hash.match(/t=([\d.]+)/);
+  if (!m) return;
+  const ids = m[1].split(".").map(Number);
+  slots = [0, 1, 2, 3, 4, 5].map(i => byId.has(ids[i]) ? byId.get(ids[i]) : null);
+  slots = slots.map((h, i) => h != null && slots.indexOf(h) === i ? h : null);
+  const e = slots.indexOf(null); active = e >= 0 ? e : 0;
+}
+
+function update() {
+  renderLanes(); renderRoster(); renderResult(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
+}
+
+function greedyFill() {
+  for (let s of [0, 1, 2, 3, 4, 5]) {
+    if (slots[s] != null) continue;
+    active = s;
+    let best = null, bv = -1;
+    for (let h = 0; h < H.length; h++) if (!slots.includes(h)) { const v = fitScore(h); if (v > bv) { bv = v; best = h; } }
+    slots[s] = best;
+  }
+  active = 0;
+  update();
+}
+
+async function main() {
+  D = await (await fetch("data.json", { cache: "no-cache" })).json();
+  H = D.heroes;
+  byId = new Map(H.map((h, i) => [h.id, i]));
+  pairMap = new Map(D.pairs.map(p => [key(p[0], p[1]), p]));
+  laneMap = new Map(D.lane_pairs.map(p => [key(p[0], p[1]), p]));
+  const w = D.window, mo = D.model;
+  const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  $("#scope").textContent = `${w.matches.toLocaleString("en-US")} matches, ${fmtDate(w.from)} – ${fmtDate(w.to)} · ${w.modes} · ${H.length} heroes · built ${fmtDate(D.built)}`;
+  const lp = 100 * (sig(mo.lead_logodds_per_1000) - 0.5);
+  $("#lead-worth").textContent = `about ${lp.toFixed(1)} points more win chance (odds ×${Math.exp(mo.lead_logodds_per_1000).toFixed(2)})`;
+  const ls = mo.lane_souls;
+  const duoGaps = D.lane_pairs.filter(p => p[2] >= 500).map(p => H[p[0]].lane_souls + H[p[1]].lane_souls + p[5]);
+  const aheadLo = Math.round(100 * phi(Math.min(...duoGaps) / ls.sigma)), aheadHi = Math.round(100 * phi(Math.max(...duoGaps) / ls.sigma));
+  $("#lane-note").textContent = `Lanes are noisy: the gap between two duos at 15:00 typically varies by ±${Math.round(ls.typical_gap).toLocaleString("en-US")} souls, and hero picks explain about ${(100 * ls.r2_strengths).toFixed(0)}% of it, so "chance to be ahead" stays between about ${aheadLo}% and ${aheadHi}% for any duo. Players and draft decide most lanes. Lane numbers are just labels; the model doesn't tell the map's lanes apart.`;
+  const sel = $("#explore");
+  [...H.keys()].sort((a, b) => H[a].name.localeCompare(H[b].name)).forEach(h => sel.append(new Option(H[h].name, h)));
+  sel.addEventListener("change", renderExplore);
+  const synRange = D.pairs.map(p => 100 * (sig(p[5]) - 0.5));
+  const lw = mo.lane_win.scan.find(r => r.lambda === mo.lane_win.lambda);
+  const best = mo.lambda_scan.find(r => r.lambda === mo.lambda);
+  $("#notes").innerHTML = [
+    `Hero strength comes from a logistic model of every match (both line-ups). It's well calibrated on held-out matches, from about 27% to 73% predicted win chance.`,
+    `Pair synergy is how often a pair's team won minus how often it was expected to win from all twelve heroes' strengths, on the log-odds scale. Pairs with fewer games are pulled toward zero. Single pairs range from ${fmtPts(Math.min(...synRange), 2)} to ${fmtPts(Math.max(...synRange), 2)} points; every pair has at least ${Math.min(...D.pairs.map(p => p[2])).toLocaleString("en-US")} games.`,
+    `Adding up 15 noisy pair numbers would overstate a team's effect, so the sum is rescaled (×${mo.scale}) to match held-out results. Teams in the best tenth for synergy beat the worst tenth by about ${(100 * (mo.synergy_calibration.at(-1).actual - mo.synergy_calibration[0].actual)).toFixed(1)} points, and the chart above shows the prediction tracking that.`,
+    `Lane partners: sharing a lane adds almost nothing to win chance beyond the pair's whole-match synergy (held-out log-loss gain ${lw.gain.toFixed(6)}, against ${best.gain.toFixed(5)} for pair synergy), so that step stays tiny. Where heroes lane shows up mainly in the souls at 15:00.`,
+    `Lane strength and duo synergy in souls come from a linear model of each lane's 15:00 soul gap (duo vs the duo it faced), using only matches that reached 15 minutes. Souls at 15:00 include early rotations and jungle, not just the lane.`,
+    `This shows what has gone together with winning, not proof of cause. Duos who queue together, skill gaps and counter-picks against the enemy aren't separated out. Unranked games are included.`,
+  ].map(t => `<li>${t}</li>`).join("");
+  chartSyn(); chartLane();
+  $("#search").addEventListener("input", renderRoster);
+  $("#sort").addEventListener("change", renderRoster);
+  $("#syn-only").addEventListener("change", renderPicks);
+  $("#btn-clear").addEventListener("click", () => { slots = slots.map(() => null); active = 0; update(); });
+  $("#btn-best").addEventListener("click", greedyFill);
+  $("#btn-random").addEventListener("click", () => {
+    const pool = [...H.keys()].sort(() => Math.random() - 0.5);
+    slots = pool.slice(0, 6); active = 0; update();
+  });
+  loadHash();
+  const first = [...H.keys()].sort((a, b) => H[a].name.localeCompare(H[b].name))[0];
+  sel.value = slots.find(s => s != null) ?? first;
+  renderExplore();
+  update();
+}
+main().catch(err => { $("#scope").textContent = "Couldn't load data.json: " + err.message; });
+</script>
+</body>
+</html>
