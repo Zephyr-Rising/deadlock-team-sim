@@ -850,12 +850,12 @@ function renderExplore() {
 // fitted units (kills / structures) for linear rows, log-odds for the chance rows.
 function profRaw(key, sl = slots) {
   if (key === "laning") return [0, 1, 2].reduce((a, k) => a + laneGap(sl, k).total, 0);
-  if (key === "scaling") return sl.reduce((a, h) => a + (h == null ? 0 : H[h].profile.long - H[h].profile.fast), 0);
+  if (key === "scaling") return sl.reduce((a, h) => a + (h == null ? 0 : H[h].profile.scaling), 0);
   return sl.reduce((a, h) => a + (h == null ? 0 : H[h].profile[key]), 0);
 }
 function heroRaw(h, key) {
   if (key === "laning") return H[h].lane_souls;
-  if (key === "scaling") return H[h].profile.long - H[h].profile.fast;
+  if (key === "scaling") return H[h].profile.scaling;
   return H[h].profile[key];
 }
 // Shown value: chance rows in win-chance points, the rest in their own units.
@@ -955,7 +955,7 @@ function renderTop() {
     win: "Ranked by the model's win chance vs an average team: hero strengths, pair synergy and lane partners.",
     actual: "Ranked by the real record, pulled toward 50% by 50 imaginary games so small samples don't dominate. Compare it with the model's expectation in the next column.",
     laning: "Ranked by the team's expected soul lead at 15:00 with its best lane split. Watch the records: strong laning alone doesn't guarantee wins.",
-    scaling: "Ranked by how much more the team wins long games than short ones, whatever its overall strength.",
+    scaling: "Ranked by how much better the team does in long games than in short ones, compared with what a team this strong normally does. Overall strength is taken out, so these aren't simply weak teams.",
   };
   $("#top-note").textContent = notes[topCat] || "Ranked by the team's summed hero effects in this category (teammates and enemies controlled for).";
   const rows = D.top_teams[topCat];
@@ -1309,7 +1309,7 @@ async function main() {
     `Adding up 15 noisy pair numbers would overstate a team's effect, so pairs are shrunk toward zero just enough that the summed team effect matches held-out results (fitted scale ${mo.scale}, i.e. no extra stretching). Teams in the best tenth for synergy beat the worst tenth by about ${(100 * (mo.synergy_calibration.at(-1).actual - mo.synergy_calibration[0].actual)).toFixed(1)} points, and the chart above shows the prediction tracking that.`,
     `Lane partners: sharing a lane adds almost nothing to win chance beyond the pair's whole-match synergy (held-out log-loss gain ${lw.gain.toFixed(6)}, against ${best.gain.toFixed(5)} for pair synergy), so that step stays tiny. Where heroes lane shows up mainly in the souls at 15:00.`,
     `Lane strength and duo synergy in souls come from a linear model of each lane's 15:00 soul gap (duo vs the duo it faced), using only matches that reached 15 minutes. Souls at 15:00 include early rotations and jungle, not just the lane.`,
-    `Team profile: every dimension was fitted on half the matches and checked on the other half; what happened tracked the prediction with slopes of ${D.model.profile.filter(p => p.slope != null && p.key !== "laning").map(p => p.slope.toFixed(2)).join(", ")} (1 = exactly as predicted). Scaling holds up too: in held-out long games it lifted the win chance (slope ${D.model.profile.at(-1).check.long.slope.toFixed(2)}), in short games it lowered it (${D.model.profile.at(-1).check.short.slope.toFixed(2)}), beyond what hero strength predicts. Short and long games say which games a line-up tends to win, not why.`,
+    `Team profile: every dimension was fitted on half the matches and checked on the other half; what happened tracked the prediction with slopes of ${D.model.profile.filter(p => p.slope != null && p.key !== "laning").map(p => p.slope.toFixed(2)).join(", ")} (1 = exactly as predicted). Scaling compares long and short games after taking out what the team's overall strength predicts (stronger teams gain about three times as much in short games, so without this every strong team would "lean early"). It holds up: in held-out long games it lifted the win chance (slope ${D.model.profile.at(-1).check.long.slope.toFixed(2)}), in short games it lowered it (${D.model.profile.at(-1).check.short.slope.toFixed(2)}), beyond what hero strength predicts. Short and long games say which games a line-up tends to win, not why.`,
     `Counters: for every hero against every enemy hero (36 pairs a match), wins against what both line-ups' strengths and synergy predicted, shrunk toward zero (fitted scale ${mo.counters.scale}). On held-out matches they improved predictions more than pair synergy did (log-loss gain ${mo.counters.gain.toFixed(5)} vs ${best.gain.toFixed(5)}); line-ups in the best tenth for counters beat the worst tenth by about ${(100 * (mo.counters.counter_calibration.at(-1).actual - mo.counters.counter_calibration[0].actual)).toFixed(1)} points. Lane counters (each hero against the two enemies in its lane) explain about ${(100 * mo.lane_counters.r2_gain).toFixed(1)}% of the 15:00 soul gap on top of lane strengths.`,
     `Actual records come from exact six-hero teams with at least ${mo.teams_min_games} games, any lane split; "expected" is what the full model predicted against the opponents each team actually met. Small samples wobble a lot.`,
     `This shows what has gone together with winning, not proof of cause. Duos who queue together and skill gaps aren't separated out. Unranked games are included.`,
