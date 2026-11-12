@@ -129,6 +129,33 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 .chart .grid { stroke: var(--line); }
 .chart .axis { fill: var(--ink-3); font: 11px var(--body); font-variant-numeric: tabular-nums; }
 .chart .atitle { fill: var(--ink-2); font: 500 12px var(--body); }
+/* Team profile */
+.prof-sum { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink); max-width: 72ch; }
+.prof-sum b.pos, .prof-sum b.neg { font-weight: 600; }
+.prof { display: grid; }
+.prow { display: grid; grid-template-columns: minmax(10em, 16em) minmax(0, 1fr) 8.5em; gap: 14px; align-items: center; padding-block: 9px; border-bottom: 1px solid var(--line); }
+.prow:last-child { border-bottom: 0; }
+.prow .nm { font-weight: 600; font-size: 15px; line-height: 1.25; }
+.prow .nm small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+.prow .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.25; }
+.prow .v small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; }
+.pct { position: relative; height: 26px; }
+.pct .rail { position: absolute; left: 0; right: 0; top: 10px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--bad-soft) 0 25%, var(--line) 25% 75%, var(--good-soft) 75% 100%); }
+.pct .q { position: absolute; top: 6px; width: 1px; height: 14px; background: var(--context); }
+.pct .mk { position: absolute; top: 4px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
+.pct .mk.p { background: var(--good); } .pct .mk.n { background: var(--bad); } .pct .mk.z { background: var(--ink-3); }
+.pct .ends { position: absolute; top: 24px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); }
+.tag2 { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
+.tag2.p { color: var(--good); background: var(--good-soft); } .tag2.n { color: var(--bad); background: var(--bad-soft); }
+.card details { min-width: 0; max-width: 100%; }
+.who-grid { overflow-x: auto; max-width: 100%; }
+.who-grid table { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 560px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.who-grid th { font-weight: 500; color: var(--ink-3); font-size: 12px; text-align: center; padding: 2px 4px; }
+.who-grid th:first-child { text-align: left; }
+.who-grid td { text-align: center; padding: 6px 4px; border-radius: 5px; }
+.who-grid td.h { text-align: left; white-space: nowrap; font-weight: 500; }
+.who-grid td.h img { width: 22px; height: 22px; border-radius: 50%; background: var(--plate); vertical-align: -6px; margin-right: 6px; }
+
 /* Graphs */
 .graph { position: relative; }
 .graph svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
@@ -157,6 +184,8 @@ footer { color: var(--ink-3); font-size: 13px; }
 footer a { color: var(--accent); }
 
 @media (max-width: 720px) {
+  .prow { grid-template-columns: minmax(0, 1fr) 7.5em; gap: 4px 10px; }
+  .prow > .nm { grid-column: 1 / -1; }
   .lanes { grid-template-columns: 1fr; }
   .result { grid-template-columns: 1fr; }
   .step { grid-template-columns: minmax(7em, 1fr) minmax(0, 1fr) 4.6em; }
@@ -207,6 +236,18 @@ footer a { color: var(--accent); }
       </div>
       <div class="steps" id="steps"></div>
     </div>
+  </section>
+
+  <section class="card" aria-labelledby="prof-h">
+    <h2 id="prof-h">Team profile</h2>
+    <p class="prof-sum" id="prof-sum"></p>
+    <p>What this line-up tends to do well or badly, from how each of its heroes has moved their team's results (teammates and enemies controlled for). The dot shows where the team ranks among all real teams in the data: the green end is the top quarter, the red end the bottom quarter. Values are against an average team.</p>
+    <div class="prof" id="prof"></div>
+    <details>
+      <summary class="hint" style="cursor:pointer">Who brings what</summary>
+      <p class="hint" style="margin:8px 0">Each hero's share of the team values above (they add up to the team's numbers, apart from lane-duo synergy, which is in the laning section below). Scaling cells are blue: + leans late, &minus; leans early.</p>
+      <div class="who-grid" id="who-grid"></div>
+    </details>
   </section>
 
   <section class="card" aria-labelledby="tg-h">
@@ -523,6 +564,90 @@ function renderExplore() {
     `<div class="li"><div class="who">${img(x.o, 26)}<span class="t">${esc(H[x.o].name)}<small>duo synergy ${fmtSouls(x.syn)} · ${x.n.toLocaleString("en-US")} lanes</small></span></div>${bar(x.v, lmax)}<div class="v ${cls(x.v / 100)}">${fmtSouls(x.v)}<small>souls</small></div></div>`).join("");
 }
 
+// ---------- team profile ----------
+// Raw team value per dimension (the units the percentile table uses): souls for laning, the
+// fitted units (kills / structures) for linear rows, log-odds for the chance rows.
+function profRaw(key) {
+  if (key === "laning") return [0, 1, 2].reduce((a, k) => a + laneGap(slots, k).total, 0);
+  if (key === "scaling") return slots.reduce((a, h) => a + (h == null ? 0 : H[h].profile.long - H[h].profile.fast), 0);
+  return slots.reduce((a, h) => a + (h == null ? 0 : H[h].profile[key]), 0);
+}
+function heroRaw(h, key) {
+  if (key === "laning") return H[h].lane_souls;
+  if (key === "scaling") return H[h].profile.long - H[h].profile.fast;
+  return H[h].profile[key];
+}
+// Shown value: chance rows in win-chance points, the rest in their own units.
+function profShow(d, raw) {
+  if (d.key === "scaling") return { v: 100 * (sig(raw / 2) - sig(-raw / 2)), txt: v => `${fmtPts(v)} pts`, sub: "late vs early" };
+  if (d.kind === "logistic") return { v: 100 * (sig(raw) - 0.5), txt: v => `${fmtPts(v)} pts`, sub: d.key === "midboss" ? "claim chance" : "win chance" };
+  if (d.unit === "souls") return { v: raw, txt: v => fmtSouls(v), sub: "souls at 15:00" };
+  return { v: raw, txt: v => `${fmtPts(v, 2)}`, sub: d.unit };
+}
+function pctOf(d, raw) {             // 0..100, interpolated in the stored percentile table
+  const p = d.pct;
+  if (raw <= p[0]) return 0;
+  if (raw >= p[100]) return 100;
+  let i = 0; while (p[i + 1] < raw) i++;
+  return i + (raw - p[i]) / ((p[i + 1] - p[i]) || 1);
+}
+const ordinal = n => { const r = Math.round(n), s = ["th", "st", "nd", "rd"], v = r % 100; return r + (s[(v - 20) % 10] || s[v] || s[0]); };
+
+function renderProfile() {
+  const dims = D.model.profile, n = slots.filter(x => x != null).length;
+  const rows = dims.map(d => { const raw = profRaw(d.key); return { d, raw, pct: pctOf(d, raw), show: profShow(d, raw) }; });
+  $("#prof").innerHTML = rows.map(({ d, pct, show }) => {
+    const isScale = d.key === "scaling";
+    const good = pct >= 75, bad = pct <= 25;
+    const tag = isScale ? (pct >= 75 ? '<span class="tag2 p">leans late</span>' : pct <= 25 ? '<span class="tag2 n">leans early</span>' : "")
+                        : good ? '<span class="tag2 p">strength</span>' : bad ? '<span class="tag2 n">weakness</span>' : "";
+    const cls2 = isScale ? "z" : good ? "p" : bad ? "n" : "z";
+    const ends = isScale ? "<span>leans early</span><span>leans late</span>" : "<span>bottom</span><span>top</span>";
+    return `<div class="prow"><div class="nm">${d.name}${tag}<small>${esc(d.detail)}</small></div>
+      <div class="pct" role="img" aria-label="${d.name}: ${ordinal(pct)} percentile among real teams">
+        <div class="rail" ${isScale ? 'style="background:linear-gradient(90deg,var(--line),var(--line))"' : ""}></div>
+        <div class="q" style="left:25%"></div><div class="q" style="left:50%"></div><div class="q" style="left:75%"></div>
+        <div class="mk ${cls2}" style="left:${pct.toFixed(1)}%"></div><div class="ends">${ends}</div></div>
+      <div class="v ${isScale ? "" : cls(show.v * (d.unit === "souls" ? 0.01 : 1))}">${show.txt(show.v)}<small>${show.sub} · ${ordinal(pct)} pct</small></div></div>`;
+  }).join("");
+
+  // Summary sentence: absolute strengths / weaknesses, else the relatively best and worst rows.
+  const main = rows.filter(r => r.d.key !== "scaling");
+  const strong = main.filter(r => r.pct >= 75).sort((a, b) => b.pct - a.pct);
+  const weak = main.filter(r => r.pct <= 25).sort((a, b) => a.pct - b.pct);
+  const sc = rows.find(r => r.d.key === "scaling");
+  const lean = sc.pct >= 75 ? "leans clearly late" : sc.pct >= 60 ? "leans a little late" : sc.pct <= 25 ? "leans clearly early" : sc.pct <= 40 ? "leans a little early" : "is balanced between early and late";
+  const names = rs => rs.map(r => `<b>${r.d.name.toLowerCase()}</b>`).join(", ").replace(/, ([^,]*)$/, " and $1");
+  let txt;
+  if (n === 0) txt = "Pick some heroes to see the team's profile.";
+  else {
+    const byPct = main.slice().sort((a, b) => b.pct - a.pct);
+    txt = strong.length ? `Strengths: <b class="pos">${strong.map(r => r.d.name.toLowerCase()).join(", ")}</b>. ` : `No clear strengths; best at <b>${byPct[0].d.name.toLowerCase()}</b> (${ordinal(byPct[0].pct)} percentile). `;
+    txt += weak.length ? `Weaknesses: <b class="neg">${weak.map(r => r.d.name.toLowerCase()).join(", ")}</b>. ` : `No clear weaknesses; weakest at <b>${byPct.at(-1).d.name.toLowerCase()}</b> (${ordinal(byPct.at(-1).pct)} percentile). `;
+    txt += `The line-up ${lean}.`;
+    if (n < 6) txt += ` <span class="hint">(${n} of 6 picked; empty slots count as average.)</span>`;
+  }
+  $("#prof-sum").innerHTML = txt;
+
+  // Who brings what: heroes x dimensions, cell colour by the hero's share (scaled per column).
+  const picked = slots.filter(h => h != null);
+  if (!picked.length) { $("#who-grid").innerHTML = '<p class="empty-note">No heroes picked.</p>'; return; }
+  const colMax = {};
+  for (const d of dims) colMax[d.key] = Math.max(...H.map((_, h) => Math.abs(heroRaw(h, d.key)))) || 1;
+  const cellTxt = (d, raw) => d.key === "scaling" ? fmtPts(100 * (sig(raw / 2) - sig(-raw / 2))) : d.kind === "logistic" ? fmtPts(100 * (sig(raw) - 0.5)) : d.unit === "souls" ? fmtSouls(raw) : fmtPts(raw, 2);
+  let s = `<table><thead><tr><th>Hero</th>${dims.map(d => `<th>${d.name}</th>`).join("")}</tr></thead><tbody>`;
+  for (const h of picked) {
+    s += `<tr><td class="h">${img(h, 22)}${esc(H[h].name)}</td>`;
+    for (const d of dims) {
+      const raw = heroRaw(h, d.key), a = Math.min(1, Math.abs(raw) / colMax[d.key]);
+      const col = d.key === "scaling" ? "var(--accent)" : raw >= 0 ? "var(--good)" : "var(--bad)";
+      s += `<td style="background:color-mix(in srgb, ${col} ${Math.round(8 + 50 * a)}%, transparent)" title="${esc(H[h].name)}: ${d.name} ${cellTxt(d, raw)}">${cellTxt(d, raw)}</td>`;
+    }
+    s += "</tr>";
+  }
+  $("#who-grid").innerHTML = s + "</tbody></table>";
+}
+
 // ---------- graphs ----------
 const pp = s => 100 * (sig(s) - 0.5);           // pair synergy (log-odds) -> win-chance points
 const EDGE_MAX = 1.2;                           // points that get the thickest line
@@ -688,7 +813,7 @@ function loadHash() {
 }
 
 function update() {
-  renderLanes(); renderRoster(); renderResult(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
+  renderLanes(); renderRoster(); renderResult(); renderProfile(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
 }
 
 function greedyFill() {
@@ -730,6 +855,7 @@ async function main() {
     `Adding up 15 noisy pair numbers would overstate a team's effect, so pairs are shrunk toward zero just enough that the summed team effect matches held-out results (fitted scale ${mo.scale}, i.e. no extra stretching). Teams in the best tenth for synergy beat the worst tenth by about ${(100 * (mo.synergy_calibration.at(-1).actual - mo.synergy_calibration[0].actual)).toFixed(1)} points, and the chart above shows the prediction tracking that.`,
     `Lane partners: sharing a lane adds almost nothing to win chance beyond the pair's whole-match synergy (held-out log-loss gain ${lw.gain.toFixed(6)}, against ${best.gain.toFixed(5)} for pair synergy), so that step stays tiny. Where heroes lane shows up mainly in the souls at 15:00.`,
     `Lane strength and duo synergy in souls come from a linear model of each lane's 15:00 soul gap (duo vs the duo it faced), using only matches that reached 15 minutes. Souls at 15:00 include early rotations and jungle, not just the lane.`,
+    `Team profile: every dimension was fitted on half the matches and checked on the other half; what happened tracked the prediction with slopes of ${D.model.profile.filter(p => p.slope != null && p.key !== "laning").map(p => p.slope.toFixed(2)).join(", ")} (1 = exactly as predicted). Scaling holds up too: in held-out long games it lifted the win chance (slope ${D.model.profile.at(-1).check.long.slope.toFixed(2)}), in short games it lowered it (${D.model.profile.at(-1).check.short.slope.toFixed(2)}), beyond what hero strength predicts. Short and long games say which games a line-up tends to win, not why.`,
     `This shows what has gone together with winning, not proof of cause. Duos who queue together, skill gaps and counter-picks against the enemy aren't separated out. Unranked games are included.`,
   ].map(t => `<li>${t}</li>`).join("");
   chartSyn(); chartLane();
