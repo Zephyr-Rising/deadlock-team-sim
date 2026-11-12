@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* One working column. Better / worse than average runs blue <- grey -> orange everywhere
-   (blue = helps your team, orange = hurts), always with a +/- number beside it. */
+/* One working column. Helps / hurts runs green <- grey -> red everywhere, always with a +/- number
+   beside it; in the graphs negative edges are also dashed, so the sign never rests on colour alone. */
 :root {
   --bg: #f4f5f7; --surface: #ffffff; --ink: #15171b; --ink-2: #4d525c; --ink-3: #7c818b;
   --line: #e2e4e9; --accent: #1c5cab; --plate: #e3e6eb; --context: #c4c8cf;
-  --good: #1c5cab; --bad: #c4511f; --good-soft: #dfe9f6; --bad-soft: #f8e3d9;
+  --good: #1e8a47; --bad: #d0352b; --good-soft: #dcf1e3; --bad-soft: #f9dfdc;
   --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
   --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
 }
@@ -22,14 +22,14 @@
   :root:not([data-theme="light"]) {
     --bg: #111317; --surface: #1a1c21; --ink: #eceef2; --ink-2: #b4b9c3; --ink-3: #868b95; --line: #2b2e35;
     --accent: #6da7ec; --plate: #c9ced6; --context: #41454d;
-    --good: #5c9be6; --bad: #e0703f; --good-soft: #1c2a3d; --bad-soft: #3a2419;
+    --good: #45c072; --bad: #f0625a; --good-soft: #17301f; --bad-soft: #3d1d1b;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111317; --surface: #1a1c21; --ink: #eceef2; --ink-2: #b4b9c3; --ink-3: #868b95; --line: #2b2e35;
   --accent: #6da7ec; --plate: #c9ced6; --context: #41454d;
-  --good: #5c9be6; --bad: #e0703f; --good-soft: #1c2a3d; --bad-soft: #3a2419;
+  --good: #45c072; --bad: #f0625a; --good-soft: #17301f; --bad-soft: #3d1d1b;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -129,6 +129,29 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 .chart .grid { stroke: var(--line); }
 .chart .axis { fill: var(--ink-3); font: 11px var(--body); font-variant-numeric: tabular-nums; }
 .chart .atitle { fill: var(--ink-2); font: 500 12px var(--body); }
+/* Graphs */
+.graph { position: relative; }
+.graph svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.graph #net-graph svg, #net-graph svg { max-width: 780px; margin: 0 auto; }
+.graph .edge { fill: none; stroke-linecap: round; transition: opacity .15s; }
+.graph .edge.p { stroke: var(--good); }
+.graph .edge.n { stroke: var(--bad); stroke-dasharray: 7 5; }
+.graph .elabel { transition: opacity .15s; }
+.graph .elabel rect { fill: var(--surface); stroke: var(--line); }
+.graph .elabel text { font: 600 12px var(--body); font-variant-numeric: tabular-nums; text-anchor: middle; dominant-baseline: central; }
+.graph .elabel.p text { fill: var(--good); } .graph .elabel.n text { fill: var(--bad); }
+.graph .node circle.ring { fill: var(--plate); stroke: var(--surface); stroke-width: 2; }
+.graph .node.mine circle.ring { stroke: var(--accent); stroke-width: 3.5; }
+.graph .node text { fill: var(--ink); font: 500 12px var(--body); text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.graph .node { cursor: pointer; transition: opacity .15s; }
+.graph .node:focus { outline: none; }
+.graph .node:focus-visible circle.ring { stroke: var(--accent); stroke-width: 3.5; }
+.graph .slot-empty { fill: none; stroke: var(--context); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.graph .lane-tag { fill: var(--ink-3); font: 600 11px var(--body); letter-spacing: .06em; text-transform: uppercase; text-anchor: middle; }
+.graph.focus .edge:not(.hot), .graph.focus .elabel:not(.hot) { opacity: 0.08; }
+.graph.focus .node:not(.hot) { opacity: 0.3; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: 14px; color: var(--ink-2); }
+.controls input[type=range] { width: 150px; accent-color: var(--accent); vertical-align: middle; }
 .notes { margin: 0; padding-left: 1.2em; color: var(--ink-2); display: grid; gap: 6px; max-width: 78ch; }
 footer { color: var(--ink-3); font-size: 13px; }
 footer a { color: var(--accent); }
@@ -184,6 +207,25 @@ footer a { color: var(--accent); }
       </div>
       <div class="steps" id="steps"></div>
     </div>
+  </section>
+
+  <section class="card" aria-labelledby="tg-h">
+    <h2 id="tg-h">Your team as a graph</h2>
+    <p>Each line is one of the 15 pairs: <b class="pos">green</b> when the pair has won more often than its heroes' own strengths predict, <b class="neg">red and dashed</b> when less. Thicker lines mean bigger effects, in win-chance points. Lane partners sit side by side. Hover over a hero to see only their pairs; click one to select that slot.</p>
+    <div class="graph" id="team-graph"></div>
+    <div class="legend"><span><i style="background:var(--good)"></i>helps (+ points)</span><span><i style="background:repeating-linear-gradient(90deg,var(--bad) 0 5px,transparent 5px 8px)"></i>hurts (&minus; points)</span><span>line width = size of the effect</span></div>
+  </section>
+
+  <section class="card" aria-labelledby="net-h">
+    <div class="row">
+      <h2 id="net-h">Synergy network</h2>
+      <div class="controls">
+        <label>Strongest <b id="net-n-v" class="num">60</b> pairs (half green, half red) <input type="range" id="net-n" min="20" max="200" step="10" value="60" aria-label="Number of pairs shown"></label>
+        <label><input type="checkbox" id="net-mine"> only my heroes' pairs</label>
+      </div>
+    </div>
+    <p>Every hero around a ring, ordered so heroes that win together tend to sit next to each other. Only the strongest pairs are drawn: half the best, half the worst. Your heroes have a blue ring. Hover over a hero to focus on their pairs; click one to put them in the selected slot.</p>
+    <div class="graph" id="net-graph"></div>
   </section>
 
   <section class="card" aria-labelledby="lane-h">
@@ -481,6 +523,126 @@ function renderExplore() {
     `<div class="li"><div class="who">${img(x.o, 26)}<span class="t">${esc(H[x.o].name)}<small>duo synergy ${fmtSouls(x.syn)} · ${x.n.toLocaleString("en-US")} lanes</small></span></div>${bar(x.v, lmax)}<div class="v ${cls(x.v / 100)}">${fmtSouls(x.v)}<small>souls</small></div></div>`).join("");
 }
 
+// ---------- graphs ----------
+const pp = s => 100 * (sig(s) - 0.5);           // pair synergy (log-odds) -> win-chance points
+const EDGE_MAX = 1.2;                           // points that get the thickest line
+const edgeW = v => 1.2 + 7 * Math.min(1, Math.abs(v) / EDGE_MAX);
+let uid = 0;
+function nodeSvg(h, x, y, r, extra) {
+  const id = "c" + (++uid);
+  return `<g class="node ${extra || ""}" data-h="${h}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" tabindex="0" role="button" aria-label="${esc(H[h].name)}">` +
+    `<clipPath id="${id}"><circle r="${r - 1}"/></clipPath><circle class="ring" r="${r}"/>` +
+    (H[h].icon ? `<image href="${H[h].icon}" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" clip-path="url(#${id})"/>` : "") +
+    `<text y="${r + 14}">${esc(H[h].name)}</text></g>`;
+}
+function edgeLine(i, j, a, b, v, title, thin) {
+  const w = thin ? 0.8 + 3.2 * Math.min(1, Math.abs(v) / EDGE_MAX) : edgeW(v);
+  return `<line class="edge ${v >= 0 ? "p" : "n"}" data-a="${i}" data-b="${j}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke-width="${w.toFixed(2)}"><title>${title}</title></line>`;
+}
+function edgeLabel(i, j, a, b, v, t) {
+  const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+  return `<g class="elabel ${v >= 0 ? "p" : "n"}" data-a="${i}" data-b="${j}"><rect x="${(x - 20).toFixed(1)}" y="${(y - 10).toFixed(1)}" width="40" height="20" rx="10"/><text x="${x.toFixed(1)}" y="${y.toFixed(1)}">${fmtPts(v, 2)}</text></g>`;
+}
+function pairTitle(i, j) {
+  const p = pairMap.get(key(i, j));
+  if (!p) return esc(`${H[i].name} + ${H[j].name}: never on the same team`);
+  return esc(`${H[i].name} + ${H[j].name}: ${fmtPts(pp(p[5]), 2)} pts · ${p[2].toLocaleString("en-US")} games, won ${(100 * p[3] / p[2]).toFixed(1)}% vs ${(100 * p[4] / p[2]).toFixed(1)}% expected`);
+}
+// Hover / keyboard focus on a node: dim everything except that hero's lines and partners.
+function wireFocus(box, onClick) {
+  const svg = box.querySelector("svg");
+  svg.querySelectorAll(".node").forEach(n => {
+    const h = n.dataset.h;
+    const on = () => {
+      box.classList.add("focus");
+      const mates = new Set([h]);
+      svg.querySelectorAll(".edge,.elabel").forEach(e => {
+        const hot = e.dataset.a === h || e.dataset.b === h;
+        e.classList.toggle("hot", hot);
+        if (hot) { mates.add(e.dataset.a); mates.add(e.dataset.b); }
+      });
+      svg.querySelectorAll(".node").forEach(m => m.classList.toggle("hot", mates.has(m.dataset.h)));
+    };
+    const off = () => box.classList.remove("focus");
+    n.addEventListener("mouseenter", on); n.addEventListener("mouseleave", off);
+    n.addEventListener("focus", on); n.addEventListener("blur", off);
+    n.addEventListener("click", () => onClick(+h));
+    n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(+h); } });
+  });
+}
+
+// Team graph: a hexagon; lane k takes corners 2k and 2k+1, so lane partners are neighbours.
+function renderTeamGraph() {
+  const phone = innerWidth < 640, W = phone ? 380 : 640, Hh = phone ? 430 : 470, cx = W / 2, cy = Hh / 2 + (phone ? 6 : 10);
+  const R = phone ? 128 : 156, r = phone ? 24 : 28;
+  const pos = [0, 1, 2, 3, 4, 5].map(s => { const a = (-120 + 60 * s) * Math.PI / 180; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Your team's 15 hero pairs as a graph">`;
+  for (let k = 0; k < 3; k++) {          // lane names just outside each pair of corners
+    const a = (-90 + 120 * k) * Math.PI / 180, d = R + (phone ? 48 : 54);
+    s += `<text class="lane-tag" x="${(cx + d * Math.cos(a)).toFixed(1)}" y="${(cy + d * Math.sin(a) + 4).toFixed(1)}">${LANES[k]}</text>`;
+  }
+  const filled = [0, 1, 2, 3, 4, 5].filter(i => slots[i] != null), edges = [];
+  for (let a = 0; a < filled.length; a++) for (let b = a + 1; b < filled.length; b++) {
+    const sa = filled[a], sb = filled[b];
+    // The three long diagonals all cross the centre, so their labels are nudged off it in
+    // three directions 120 degrees apart (clear of the short diagonals' labels).
+    const t = sb - sa === 3 ? [0.4, 0.6, 0.4][sa] : 0.5;
+    edges.push({ sa, sb, v: pp(pairSyn(slots[sa], slots[sb])), t });
+  }
+  edges.sort((x, y) => Math.abs(x.v) - Math.abs(y.v));   // strongest drawn last, on top
+  s += edges.map(e => edgeLine(slots[e.sa], slots[e.sb], pos[e.sa], pos[e.sb], e.v,
+    pairTitle(slots[e.sa], slots[e.sb]) + (laneOf(e.sa) === laneOf(e.sb) ? " · lane partners" : ""))).join("");
+  s += edges.map(e => edgeLabel(slots[e.sa], slots[e.sb], pos[e.sa], pos[e.sb], e.v, e.t)).join("");
+  for (let i = 0; i < 6; i++) s += slots[i] != null ? nodeSvg(slots[i], pos[i][0], pos[i][1], r, i === active ? "mine" : "")
+    : `<circle class="slot-empty" cx="${pos[i][0].toFixed(1)}" cy="${pos[i][1].toFixed(1)}" r="${r}"/>`;
+  if (filled.length < 2) s += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="var(--ink-3)" font-size="14">Pick at least two heroes</text>`;
+  const box = $("#team-graph");
+  box.innerHTML = s + "</svg>";
+  // In the team graph a click selects that hero's slot (it doesn't move the hero).
+  wireFocus(box, h => { active = slots.indexOf(h); update(); });
+}
+
+// Network of all heroes on a ring. The order around the ring comes from data.json (spectral
+// ordering of the positive synergies), so heroes that win together tend to be neighbours.
+// Pair lines bend toward the centre, like a chord diagram, so they don't run along the ring.
+let netLayout = null;   // kept for the resize handler
+function renderNetwork() {
+  const phone = innerWidth < 640, W = phone ? 400 : 780, Hh = phone ? 400 : 760;
+  const cx = W / 2, cy = Hh / 2, R = phone ? 106 : 248, r = phone ? 9 : 15;
+  const order = D.net_order || H.map((_, i) => i), n = order.length;
+  const P = [], ang = [];
+  order.forEach((h, k) => { const a = -Math.PI / 2 + 2 * Math.PI * k / n; ang[h] = a; P[h] = [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
+  const team = new Set(slots.filter(x => x != null));
+  let list = D.pairs;
+  if ($("#net-mine").checked) list = list.filter(p => team.has(p[0]) || team.has(p[1]));
+  // Half the lines are the strongest positive pairs, half the strongest negative ones.
+  const half = +$("#net-n").value / 2;
+  const posL = list.filter(p => p[5] > 0).sort((a, b) => b[5] - a[5]).slice(0, half);
+  const negL = list.filter(p => p[5] < 0).sort((a, b) => a[5] - b[5]).slice(0, half);
+  list = [...posL, ...negL].sort((a, b) => Math.abs(a[5]) - Math.abs(b[5]));
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Ring of all heroes with their strongest pair synergies drawn as lines">`;
+  for (const p of list) {
+    const a = P[p[0]], b = P[p[1]], v = pp(p[5]);
+    // Control point: the chord's midpoint pulled most of the way to the centre.
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, qx = mx + (cx - mx) * 0.7, qy = my + (cy - my) * 0.7;
+    const w = 0.8 + 3.2 * Math.min(1, Math.abs(v) / EDGE_MAX);
+    s += `<path class="edge ${v >= 0 ? "p" : "n"}" data-a="${p[0]}" data-b="${p[1]}" d="M${a[0].toFixed(1)},${a[1].toFixed(1)} Q${qx.toFixed(1)},${qy.toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)}" stroke-width="${w.toFixed(2)}"><title>${pairTitle(p[0], p[1])}</title></path>`;
+  }
+  // Nodes, with names pointing outward like spokes (flipped on the left half so they read
+  // left to right), so neighbours' names never run into each other.
+  for (const h of order) {
+    const id = "c" + (++uid), a = ang[h], deg = a * 180 / Math.PI, left = Math.cos(a) < -1e-6;
+    const rot = left ? deg + 180 : deg, dx = left ? -(r + 5) : r + 5;
+    s += `<g class="node ${team.has(h) ? "mine" : ""}" data-h="${h}" transform="translate(${P[h][0].toFixed(1)},${P[h][1].toFixed(1)})" tabindex="0" role="button" aria-label="${esc(H[h].name)}">` +
+      `<clipPath id="${id}"><circle r="${r - 1}"/></clipPath><circle class="ring" r="${r}"/>` +
+      (H[h].icon ? `<image href="${H[h].icon}" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" clip-path="url(#${id})"/>` : "") +
+      `<text transform="rotate(${rot.toFixed(1)})" x="${dx}" y="4" style="text-anchor:${left ? "end" : "start"};font-size:${phone ? 10 : 12}px">${esc(H[h].name)}</text></g>`;
+  }
+  const box = $("#net-graph");
+  box.innerHTML = s + "</svg>";
+  wireFocus(box, h => place(h));
+}
+
 // ---------- check charts (small inline SVG) ----------
 function chartSyn() {
   const rows = D.model.synergy_calibration;
@@ -526,7 +688,7 @@ function loadHash() {
 }
 
 function update() {
-  renderLanes(); renderRoster(); renderResult(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
+  renderLanes(); renderRoster(); renderResult(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderPairs(); renderPicks(); saveHash();
 }
 
 function greedyFill() {
@@ -571,6 +733,13 @@ async function main() {
     `This shows what has gone together with winning, not proof of cause. Duos who queue together, skill gaps and counter-picks against the enemy aren't separated out. Unranked games are included.`,
   ].map(t => `<li>${t}</li>`).join("");
   chartSyn(); chartLane();
+  $("#net-n").addEventListener("input", e => { $("#net-n-v").textContent = e.target.value; renderNetwork(); });
+  $("#net-mine").addEventListener("change", renderNetwork);
+  let lastPhone = innerWidth < 640;
+  addEventListener("resize", () => {
+    const phone = innerWidth < 640;
+    if (phone !== lastPhone) { lastPhone = phone; netLayout = null; renderTeamGraph(); renderNetwork(); }
+  });
   $("#search").addEventListener("input", renderRoster);
   $("#sort").addEventListener("change", renderRoster);
   $("#syn-only").addEventListener("change", renderPicks);
