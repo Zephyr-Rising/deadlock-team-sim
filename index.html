@@ -79,7 +79,8 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 .hero:hover { border-color: var(--line); background: var(--bg); }
 .hero img { width: 44px; height: 44px; border-radius: 50%; background: var(--plate); }
 .hero span { font-size: 12px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
-.hero[disabled] { opacity: 0.3; cursor: default; }
+.hero.picked img { outline: 2.5px solid var(--accent); outline-offset: 1px; }
+.hero.picked span { color: var(--accent); font-weight: 600; }
 .hero[hidden] { display: none; }
 
 /* --- Result --- */
@@ -136,7 +137,10 @@ footer a { color: var(--accent); }
   .lanes { grid-template-columns: 1fr; }
   .result { grid-template-columns: 1fr; }
   .step { grid-template-columns: minmax(7em, 1fr) minmax(0, 1fr) 4.6em; }
-  .li, .picks .li { grid-template-columns: minmax(8em, 1.2fr) minmax(0, 1fr) 4.8em; gap: 8px; }
+  /* On phones each list row becomes two lines: who on top, then the bar and the number. */
+  .li, .picks .li, #lane-list .li { grid-template-columns: minmax(0, 1fr) 5em; gap: 4px 10px; }
+  .li > .who { grid-column: 1 / -1; }
+  .slot { min-height: 80px; }
   .big { font-size: 56px; }
 }
 </style>
@@ -159,7 +163,7 @@ footer a { color: var(--accent); }
       </div>
     </div>
     <div class="lanes" id="lanes"></div>
-    <p class="hint" id="build-hint">Click a slot, then a hero. Select a filled slot, then click another filled slot to swap them; × removes a hero. The link in your address bar keeps the team.</p>
+    <p class="hint" id="build-hint">Click a slot, then a hero to put there. Picking a hero who's already on the team swaps the two; × removes one. The link in your address bar keeps the team.</p>
     <div class="roster-bar">
       <input type="search" id="search" placeholder="Search heroes" aria-label="Search heroes">
       <select id="sort" aria-label="Sort heroes">
@@ -225,7 +229,7 @@ footer a { color: var(--accent); }
 
   <section class="card" aria-labelledby="check-h">
     <h2 id="check-h">How far to trust it</h2>
-    <p>Everything was estimated on half the matches and checked on the other half, which the model never saw.</p>
+    <p>The model's settings were tuned on half the matches and the charts check them against the other half. The numbers on this page are then refit on all matches with those settings.</p>
     <div class="two">
       <div class="chart">
         <div class="label">Synergy check: win rate by synergy gap between the teams</div>
@@ -314,9 +318,7 @@ function renderLanes() {
       b.addEventListener("click", ev => {
         if (ev.target.dataset.remove != null) { slots[s] = null; active = s; return update(); }
         if (s === active) return;
-        // A filled slot was selected and another slot clicked: swap them.
-        if (slots[active] != null && slots[s] != null) [slots[active], slots[s]] = [slots[s], slots[active]];
-        active = s; update();
+        active = s; update();      // a slot click only selects; the roster does the placing
       });
       ls.append(b);
     }
@@ -338,7 +340,7 @@ function renderRoster() {
   for (const h of order) {
     const b = el("button", "hero", `${img(h, 44)}<span>${esc(H[h].name)}</span>`);
     b.type = "button";
-    b.disabled = slots.includes(h) && slots[active] !== h;
+    if (slots.includes(h)) { b.classList.add("picked"); b.setAttribute("aria-pressed", "true"); }
     b.hidden = q && !H[h].name.toLowerCase().includes(q);
     b.title = `${H[h].name}: ${(100 * H[h].win_rate).toFixed(1)}% win rate, ${H[h].games.toLocaleString("en-US")} games`;
     b.addEventListener("click", () => place(h));
@@ -348,12 +350,17 @@ function renderRoster() {
 
 function place(h) {
   const old = slots.indexOf(h);
-  if (old >= 0) slots[old] = null;
+  if (old === active) return;
+  const wasEmpty = slots[active] == null;
+  // A hero already on the team moves here, and whoever was here takes its old slot (a swap).
+  if (old >= 0) slots[old] = slots[active];
   slots[active] = h;
-  // Move on to the next empty slot (partner first, so lanes fill as duos).
-  const order = [partnerSlot(active), 0, 1, 2, 3, 4, 5];
-  const next = order.find(s => slots[s] == null);
-  if (next != null) active = next;
+  // After filling an empty slot, move on to the next empty one (partner first, so lanes fill
+  // as duos). After a replacement or swap, stay put.
+  if (wasEmpty && old < 0) {
+    const next = [partnerSlot(active), 0, 1, 2, 3, 4, 5].find(s => slots[s] == null);
+    if (next != null) active = next;
+  }
   update();
 }
 
@@ -558,7 +565,7 @@ async function main() {
   $("#notes").innerHTML = [
     `Hero strength comes from a logistic model of every match (both line-ups). It's well calibrated on held-out matches, from about 27% to 73% predicted win chance.`,
     `Pair synergy is how often a pair's team won minus how often it was expected to win from all twelve heroes' strengths, on the log-odds scale. Pairs with fewer games are pulled toward zero. Single pairs range from ${fmtPts(Math.min(...synRange), 2)} to ${fmtPts(Math.max(...synRange), 2)} points; every pair has at least ${Math.min(...D.pairs.map(p => p[2])).toLocaleString("en-US")} games.`,
-    `Adding up 15 noisy pair numbers would overstate a team's effect, so the sum is rescaled (×${mo.scale}) to match held-out results. Teams in the best tenth for synergy beat the worst tenth by about ${(100 * (mo.synergy_calibration.at(-1).actual - mo.synergy_calibration[0].actual)).toFixed(1)} points, and the chart above shows the prediction tracking that.`,
+    `Adding up 15 noisy pair numbers would overstate a team's effect, so pairs are shrunk toward zero just enough that the summed team effect matches held-out results (fitted scale ${mo.scale}, i.e. no extra stretching). Teams in the best tenth for synergy beat the worst tenth by about ${(100 * (mo.synergy_calibration.at(-1).actual - mo.synergy_calibration[0].actual)).toFixed(1)} points, and the chart above shows the prediction tracking that.`,
     `Lane partners: sharing a lane adds almost nothing to win chance beyond the pair's whole-match synergy (held-out log-loss gain ${lw.gain.toFixed(6)}, against ${best.gain.toFixed(5)} for pair synergy), so that step stays tiny. Where heroes lane shows up mainly in the souls at 15:00.`,
     `Lane strength and duo synergy in souls come from a linear model of each lane's 15:00 soul gap (duo vs the duo it faced), using only matches that reached 15 minutes. Souls at 15:00 include early rotations and jungle, not just the lane.`,
     `This shows what has gone together with winning, not proof of cause. Duos who queue together, skill gaps and counter-picks against the enemy aren't separated out. Unranked games are included.`,
