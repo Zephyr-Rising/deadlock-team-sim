@@ -8,7 +8,14 @@ Put six Deadlock heroes into three lanes and see how the team's estimated win ch
 2. **Pair synergy**: for each of the 15 pairs, how often their team won compared with what all twelve heroes' strengths predicted. Pairs with fewer games are pulled toward zero, and the sum over 15 pairs is rescaled so it matches held-out matches.
 3. **Lane partners**: the extra effect of the two heroes in a lane laning together. It turns out to be tiny on win chance, so the laning phase is shown in **souls at 15:00** instead. That's each duo's expected soul gap against the duo it faced, split into the two heroes' lane strength and the duo's own synergy.
 
-The page also suggests the best next pick for any slot and lists one hero's best and worst partners.
+The page also has:
+
+- **Enemy team / head to head:** your chance to beat a specific line-up, including counters (each hero against each enemy hero), plus lane-by-lane matchups at 15:00.
+- **Actual records:** the real record of an exact six-hero team (5+ games, from `teams.csv`) next to what the model expected against the opponents that team met.
+- **Team profile:** laning, fights, structures, mid-boss, short and long games, and scaling, each checked on held-out matches. A "What each hero adds" panel shows how each member contributes.
+- **All 15 lane splits** of your six heroes.
+- **Top 10 real teams** (30+ games) in every category.
+- **Synergy graphs, best next pick,** and each hero's best and worst partners.
 
 ## Data
 

@@ -151,6 +151,51 @@ input[type="search"], select { font: 400 14px var(--body); color: var(--ink); ba
 .chart .grid { stroke: var(--line); }
 .chart .axis { fill: var(--ink-3); font: 11px var(--body); font-variant-numeric: tabular-nums; }
 .chart .atitle { fill: var(--ink-2); font: 500 12px var(--body); }
+/* Enemy team */
+.team-sub { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin-top: 6px; }
+.team-sub h3 { font-size: 22px; }
+.team-sub h3 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: 2px; }
+.lanes.enemy .lane { background: color-mix(in srgb, var(--bad) 6%, var(--bg)); }
+.lanes.enemy .slot.active { border-color: var(--bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 20%, transparent); }
+.hero.enemy-pick img { outline: 2.5px solid var(--bad); outline-offset: 1px; }
+.hero.enemy-pick span { color: var(--bad); font-weight: 600; }
+.hero[disabled] { opacity: .35; cursor: default; }
+.side-note { font-size: 13px; color: var(--ink-2); }
+.side-note b.a { color: var(--accent); } .side-note b.b { color: var(--bad); }
+/* Head to head */
+.h2h-top { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 18px 28px; align-items: start; }
+.vs-line { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.vs-line img { width: 26px; height: 26px; border-radius: 50%; background: var(--plate); }
+.vs-line.b img { outline: 2px solid var(--bad); outline-offset: 1px; }
+.vs-line.a img { outline: 2px solid var(--accent); outline-offset: 1px; }
+.record { display: grid; gap: 6px; }
+.rec { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.rec .lbl { font-weight: 600; font-size: 14px; }
+.rec .lbl small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-3); }
+.rec .num { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; text-align: right; }
+.rec .num small { display: block; font: 400 12px var(--body); color: var(--ink-3); text-align: right; margin-top: 3px; }
+.actual-you { margin-top: 10px; }
+
+#h2h-body .li { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) 5.4em; }
+
+/* Top 10 teams */
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cats button { font-size: 13px; padding: 5px 10px; border-radius: 999px; }
+.cats button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.tops { display: grid; }
+.trow { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) 7.5em 9.5em auto; gap: 12px; align-items: center; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.trow:last-child { border-bottom: 0; }
+.trow .rk { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--ink-3); text-align: right; }
+.trow .six { display: flex; flex-wrap: wrap; gap: 3px 10px; min-width: 0; }
+.trow .duo2 { display: inline-flex; gap: 2px; }
+.trow .six img { width: 30px; height: 30px; border-radius: 50%; background: var(--plate); }
+.trow .names { font-size: 12px; color: var(--ink-3); line-height: 1.35; width: 100%; }
+.trow .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 16px; line-height: 1.2; }
+.trow .val small, .trow .rec2 small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-3); }
+.trow .rec2 { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.trow .acts { display: flex; gap: 4px; }
+.trow .acts button { font-size: 12px; padding: 4px 8px; }
+
 /* What each hero adds */
 .mem { display: grid; }
 .mrow { display: grid; grid-template-columns: minmax(11em, 15em) minmax(0, 1fr) 6.5em; gap: 14px; align-items: center; padding-block: 9px; border-bottom: 1px solid var(--line); }
@@ -220,6 +265,12 @@ footer { color: var(--ink-3); font-size: 13px; }
 footer a { color: var(--accent); }
 
 @media (max-width: 720px) {
+  .trow { grid-template-columns: 1.5em minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; }
+  .trow .rk { grid-row: 1 / span 3; align-self: start; }
+  .trow .six { grid-column: 2 / -1; }
+  .trow .val, .trow .rec2 { text-align: left; }
+  .trow .acts { grid-column: 2 / -1; }
+  .h2h-top { grid-template-columns: 1fr; }
   .mrow { grid-template-columns: minmax(0, 1fr) 5.5em; gap: 6px 10px; }
   .mrow > .who { grid-column: 1 / 2; } .mrow > .v { grid-column: 2; grid-row: 1; } .mrow > .mbar { grid-column: 1 / -1; }
   /* Phones: duos on top (full width), then win chance and souls side by side. */
@@ -263,7 +314,17 @@ footer a { color: var(--accent); }
       </div>
     </div>
     <div class="lanes" id="lanes"></div>
-    <p class="hint" id="build-hint">Click a slot, then a hero to put there. Picking a hero who's already on the team swaps the two; × removes one. The link in your address bar keeps the team.</p>
+    <div class="team-sub">
+      <h3><span class="dot" style="background:var(--bad)"></span>Enemy team <span class="hint" style="font:400 13px var(--body)">optional, for head-to-head</span></h3>
+      <div class="roster-bar" style="flex:0 1 auto">
+        <button type="button" id="btn-e-counter">Fill with counter-picks</button>
+        <button type="button" id="btn-e-random">Random</button>
+        <button type="button" id="btn-e-clear">Clear</button>
+      </div>
+    </div>
+    <div class="lanes enemy" id="lanes-e"></div>
+    <p class="hint" id="build-hint">Click a slot on either team, then a hero to put there. Picking a hero who's already on that team swaps the two; a hero can't be on both teams. × removes one. The link in your address bar keeps both teams.</p>
+    <p class="side-note" id="side-note"></p>
     <div class="roster-bar">
       <input type="search" id="search" placeholder="Search heroes" aria-label="Search heroes">
       <select id="sort" aria-label="Sort heroes">
@@ -281,9 +342,15 @@ footer a { color: var(--accent); }
         <div class="label">vs an average team</div>
         <div class="big" id="big">50<small>%</small></div>
         <p class="hint" id="big-note"></p>
+        <div class="record actual-you" id="actual-you"></div>
       </div>
       <div class="steps" id="steps"></div>
     </div>
+  </section>
+
+  <section class="card" aria-labelledby="h2h-h">
+    <h2 id="h2h-h">Head to head</h2>
+    <div id="h2h-body"></div>
   </section>
 
   <section class="card" aria-labelledby="mem-h">
@@ -303,6 +370,14 @@ footer a { color: var(--accent); }
       <p class="hint" style="margin:8px 0">Each hero's share of the team values above (they add up to the team's numbers, apart from lane-duo synergy, which is in the laning section below). Scaling cells are blue: + leans late, &minus; leans early.</p>
       <div class="who-grid" id="who-grid"></div>
     </details>
+  </section>
+
+  <section class="card" aria-labelledby="top-h">
+    <h2 id="top-h">Top 10 teams</h2>
+    <p id="top-intro"></p>
+    <div class="cats" id="cats" role="group" aria-label="Category"></div>
+    <p class="hint" id="top-note"></p>
+    <div class="tops" id="tops"></div>
   </section>
 
   <section class="card" aria-labelledby="tg-h">
@@ -414,7 +489,11 @@ function phi(x) {
 let D, H, pairMap, laneMap, byId;
 // slots[0..5]: hero index or null. Lane k = slots 2k, 2k+1.
 let slots = [null, null, null, null, null, null];
-let active = 0;      // selected slot
+let active = 0;      // selected slot on your team
+let enemy = [null, null, null, null, null, null];
+let activeE = 0;     // selected slot on the enemy team
+let side = "A";      // which team the roster places into: "A" = yours, "B" = enemy
+let counterMap, records = null, recordsLoading = false;
 const LANES = ["Lane 1", "Lane 2", "Lane 3"];
 
 const key = (i, j) => i < j ? i * 1000 + j : j * 1000 + i;
@@ -446,26 +525,30 @@ function laneGap(sl, k) {
 function img(h, size) { return H[h].icon ? `<img src="${H[h].icon}" alt="" width="${size}" height="${size}" loading="lazy">` : ""; }
 
 // ---------- rendering ----------
-function renderLanes() {
-  const wrap = $("#lanes"); wrap.innerHTML = "";
+function renderLanes() { renderTeamLanes("#lanes", "A"); renderTeamLanes("#lanes-e", "B"); }
+function renderTeamLanes(sel, sd) {
+  const arr = sd === "A" ? slots : enemy, act = sd === "A" ? active : activeE;
+  const wrap = $(sel); wrap.innerHTML = "";
   for (let k = 0; k < 3; k++) {
     const lane = el("div", "lane");
-    const g = laneGap(slots, k);
-    const both = slots[2 * k] != null && slots[2 * k + 1] != null;
+    const g = laneGap(arr, k);
+    const both = arr[2 * k] != null && arr[2 * k + 1] != null;
     lane.append(el("div", "lane-head", `<b>${LANES[k]}</b><span class="hint num">${both ? `<span class="${cls(g.total)}">${fmtSouls(g.total)}</span> souls @15:00` : "duo"}</span>`));
     const ls = el("div", "lane-slots");
     for (const s of [2 * k, 2 * k + 1]) {
-      const h = slots[s];
-      const b = el("button", "slot" + (h != null ? " filled" : "") + (s === active ? " active" : ""));
+      const h = arr[s], on = side === sd && s === act;
+      const b = el("button", "slot" + (h != null ? " filled" : "") + (on ? " active" : ""));
       b.type = "button";
-      b.setAttribute("aria-label", h != null ? `${H[h].name} in ${LANES[k]}, select to swap or replace` : `Empty slot in ${LANES[k]}`);
+      const who = sd === "A" ? "your team" : "the enemy team";
+      b.setAttribute("aria-label", h != null ? `${H[h].name} in ${LANES[k]} of ${who}, select to replace` : `Empty slot in ${LANES[k]} of ${who}`);
       b.innerHTML = h != null
         ? `${img(h, 52)}<span class="nm">${esc(H[h].name)}</span><span class="x" data-remove="${s}" title="Remove" aria-hidden="true">×</span>`
-        : `<span class="empty">${s === active ? "pick a hero" : "empty"}</span>`;
+        : `<span class="empty">${on ? "pick a hero" : "empty"}</span>`;
       b.addEventListener("click", ev => {
-        if (ev.target.dataset.remove != null) { slots[s] = null; active = s; return update(); }
-        if (s === active) return;
-        active = s; update();      // a slot click only selects; the roster does the placing
+        side = sd;
+        if (ev.target.dataset.remove != null) { arr[s] = null; if (sd === "A") active = s; else activeE = s; return update(); }
+        if (sd === "A") active = s; else activeE = s;
+        update();      // a slot click only selects; the roster does the placing
       });
       ls.append(b);
     }
@@ -474,8 +557,9 @@ function renderLanes() {
   }
 }
 
-function fitScore(h) {   // team win chance with hero h placed in the active slot
-  const t = slots.slice(); t[active] = h; return sig(score(t).total - D.model.syn_mean);
+function fitScore(h) {   // win chance with hero h in the selected slot (vs the enemy if there is one)
+  if (side === "B") { const e = enemy.slice(); e[activeE] = h; return hasEnemy() || slots.some(x => x != null) ? 1 - h2hProb(slots, e) : sig(score(e).total - D.model.syn_mean); }
+  const t = slots.slice(); t[active] = h; return hasEnemy() ? h2hProb(t, enemy) : sig(score(t).total - D.model.syn_mean);
 }
 
 function renderRoster() {
@@ -488,27 +572,155 @@ function renderRoster() {
     const b = el("button", "hero", `${img(h, 44)}<span>${esc(H[h].name)}</span>`);
     b.type = "button";
     if (slots.includes(h)) { b.classList.add("picked"); b.setAttribute("aria-pressed", "true"); }
+    if (enemy.includes(h)) b.classList.add("enemy-pick");
+    // A hero can only be on one team: disable heroes the OTHER team already has.
+    if ((side === "A" && enemy.includes(h)) || (side === "B" && slots.includes(h))) { b.disabled = true; b.title = `${H[h].name} is on the ${side === "A" ? "enemy" : "your"} team`; }
     b.hidden = q && !H[h].name.toLowerCase().includes(q);
-    b.title = `${H[h].name}: ${(100 * H[h].win_rate).toFixed(1)}% win rate, ${H[h].games.toLocaleString("en-US")} games`;
+    if (!b.disabled) b.title = `${H[h].name}: ${(100 * H[h].win_rate).toFixed(1)}% win rate, ${H[h].games.toLocaleString("en-US")} games`;
     b.addEventListener("click", () => place(h));
     r.append(b);
   }
 }
 
 function place(h) {
-  const old = slots.indexOf(h);
-  if (old === active) return;
-  const wasEmpty = slots[active] == null;
+  const arr = side === "A" ? slots : enemy, other = side === "A" ? enemy : slots;
+  let act = side === "A" ? active : activeE;
+  if (other.includes(h)) return;                 // already on the other team
+  const old = arr.indexOf(h);
+  if (old === act) return;
+  const wasEmpty = arr[act] == null;
   // A hero already on the team moves here, and whoever was here takes its old slot (a swap).
-  if (old >= 0) slots[old] = slots[active];
-  slots[active] = h;
+  if (old >= 0) arr[old] = arr[act];
+  arr[act] = h;
   // After filling an empty slot, move on to the next empty one (partner first, so lanes fill
   // as duos). After a replacement or swap, stay put.
   if (wasEmpty && old < 0) {
-    const next = [partnerSlot(active), 0, 1, 2, 3, 4, 5].find(s => slots[s] == null);
-    if (next != null) active = next;
+    const next = [partnerSlot(act), 0, 1, 2, 3, 4, 5].find(s => arr[s] == null);
+    if (next != null) act = next;
   }
+  if (side === "A") active = act; else activeE = act;
   update();
+}
+
+// ---------- head to head ----------
+const hasEnemy = () => enemy.some(x => x != null);
+// Counter of hero a against enemy hero b (log-odds; antisymmetric).
+function counter(a, b) { const c = counterMap.get(key(a, b)); return c ? (a < b ? c[5] : -c[5]) : 0; }
+function laneCounter(a, b) { const c = counterMap.get(key(a, b)); return c ? (a < b ? c[7] : -c[7]) : 0; }
+function counterSum(A, B) {
+  let s = 0;
+  for (const a of A) if (a != null) for (const b of B) if (b != null) s += counter(a, b);
+  return s;
+}
+function h2hParts(A, B) {
+  const a = score(A), b = score(B);
+  return { base: a.base - b.base, syn: a.syn - b.syn, lane: a.lane - b.lane, cnt: counterSum(A, B) };
+}
+function h2hProb(A, B) { const p = h2hParts(A, B); return sig(p.base + p.syn + p.lane + p.cnt); }
+// Lane k: your duo vs their duo, souls at 15:00 (lane strengths, duo synergy, lane counters).
+function laneMatch(k) {
+  const ga = laneGap(slots, k), gb = laneGap(enemy, k);
+  let lc = 0;
+  for (const a of [slots[2 * k], slots[2 * k + 1]]) if (a != null)
+    for (const b of [enemy[2 * k], enemy[2 * k + 1]]) if (b != null) lc += laneCounter(a, b);
+  return { mine: ga.total, theirs: gb.total, lc, total: ga.total - gb.total + lc };
+}
+
+// Actual records of exact six-hero teams (teams.csv, loaded on first use).
+function teamKey(arr) {
+  if (arr.some(x => x == null)) return null;
+  const s = arr.slice().sort((x, y) => x - y);
+  let k = 0, m = 1;
+  for (const i of s) { k += i * m; m *= H.length; }
+  return k.toString(36);
+}
+async function loadRecords() {
+  if (records || recordsLoading) return;
+  recordsLoading = true;
+  try {
+    const txt = await (await fetch("teams.csv", { cache: "no-cache" })).text();
+    const map = new Map();
+    for (const line of txt.split("\n").slice(1)) {
+      if (!line) continue;
+      const [k, n, w, e] = line.split(",");
+      map.set(k, [+n, +w, +e]);
+    }
+    records = map;
+  } catch (e) { records = new Map(); }
+  recordsLoading = false;
+  renderResult(); renderH2H();
+}
+function recordHtml(arr, label) {
+  const k = teamKey(arr), min = D.model.teams_min_games;
+  if (k == null) return `<div class="rec"><div class="lbl">${label}<small>Pick all six to see this exact team's real record.</small></div><div></div></div>`;
+  if (!records) { loadRecords(); return `<div class="rec"><div class="lbl">${label}<small>Loading match records…</small></div><div></div></div>`; }
+  const r = records.get(k);
+  if (!r) return `<div class="rec"><div class="lbl">${label}<small>Fewer than ${min} games with exactly these six heroes in the data, so no reliable record. The estimate above is built from their pairs instead.</small></div><div class="num">–</div></div>`;
+  const [n, w, e] = r, act = 100 * w / n, exp = 100 * e / n;
+  // Rough 95% range for the actual rate, to show how much a small sample can wobble.
+  const se = 100 * Math.sqrt(Math.max(w, 0.5) * Math.max(n - w, 0.5) / n) / n * 1.96;
+  return `<div class="rec"><div class="lbl">${label}<small>${n.toLocaleString("en-US")} games with exactly these six (any lanes), won ${w.toLocaleString("en-US")}. Against the opponents they actually met, the model expected ${exp.toFixed(1)}%. ${n < 30 ? "Small sample: the real rate could easily be " + Math.max(0, act - se).toFixed(0) + "–" + Math.min(100, act + se).toFixed(0) + "%." : ""}</small></div>
+    <div class="num">${act.toFixed(1)}%<small>actual · ${act - exp >= 0 ? "+" : "−"}${Math.abs(act - exp).toFixed(1)} vs expected</small></div></div>`;
+}
+
+function renderH2H() {
+  const body = $("#h2h-body");
+  if (!hasEnemy()) { body.innerHTML = `<p class="empty-note">Add heroes to the enemy team in the builder above to compare the two line-ups: chance to win, lane-by-lane matchups and which of your heroes counter theirs.</p>`; return; }
+  const p = h2hParts(slots, enemy);
+  const p0 = sig(p.base), p1 = sig(p.base + p.syn), p2 = sig(p.base + p.syn + p.lane), p3 = sig(p.base + p.syn + p.lane + p.cnt);
+  const nA = slots.filter(x => x != null).length, nB = enemy.filter(x => x != null).length;
+  const steps = [
+    ["Hero strength", "yours minus theirs", 100 * (p0 - 0.5)],
+    ["Pair synergy", "yours minus theirs", 100 * (p1 - p0)],
+    ["Lane partners", "yours minus theirs", 100 * (p2 - p1)],
+    ["Counters", `${nA * nB} hero-vs-hero pairs`, 100 * (p3 - p2)],
+  ];
+  const max = Math.max(4, ...steps.map(s => Math.abs(s[2])));
+  const bar = (v, mx) => { const w = 50 * Math.min(1, Math.abs(v) / mx); return `<div class="track"><div class="mid"></div><div class="bar ${v >= 0 ? "p" : "n"}" style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></div></div>`; };
+  const icons = (arr, c) => `<div class="vs-line ${c}">${arr.filter(x => x != null).map(h => img(h, 26)).join("")}</div>`;
+  let s = `<div class="h2h-top"><div>
+      <div class="label">your chance to win</div>
+      <div class="big">${(100 * p3).toFixed(1)}<small>%</small></div>
+      <p class="hint">${nA < 6 || nB < 6 ? `${nA} vs ${nB} picked; empty slots count as average heroes.` : "Six against six."}</p>
+      ${icons(slots, "a")}<div class="hint" style="margin:2px 0">vs</div>${icons(enemy, "b")}
+    </div><div class="steps">${steps.map(([nm, sub, v]) => `<div class="step"><div class="nm">${nm}<small>${sub}</small></div>${bar(v, max)}<div class="v ${cls(v)}">${fmtPts(v)} pts</div></div>`).join("")}</div></div>`;
+
+  // Lane matchups
+  const sigma = D.model.lane_souls.sigma;
+  s += `<h3 style="margin-top:6px">Lane matchups at 15:00</h3><div class="list">`;
+  for (let k = 0; k < 3; k++) {
+    const A = [slots[2 * k], slots[2 * k + 1]].filter(x => x != null), B = [enemy[2 * k], enemy[2 * k + 1]].filter(x => x != null);
+    if (!A.length && !B.length) { s += `<div class="li"><div class="who"><span class="t">${LANES[k]}<small>both empty</small></span></div><div></div><div></div></div>`; continue; }
+    const m = laneMatch(k), ahead = 100 * phi(m.total / sigma);
+    const names = arr => arr.length ? arr.map(h => esc(H[h].name)).join(" + ") : "empty";
+    const w = Math.min(50, 50 * Math.abs(m.total) / 1600);
+    s += `<div class="li"><div class="who">${A.map(h => img(h, 26)).join("")}<span class="t">${LANES[k]}: ${names(A)} <span class="hint">vs</span> ${names(B)}<small>${ahead.toFixed(0)}% chance to be ahead · your duo ${fmtSouls(m.mine)}, theirs ${fmtSouls(m.theirs)} vs average · lane counters ${fmtSouls(m.lc)}</small></span></div>
+      <div class="track"><div class="mid"></div><div class="bar ${m.total >= 0 ? "p" : "n"}" style="${m.total >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></div></div>
+      <div class="v ${cls(m.total / 100)}">${fmtSouls(m.total)}<small>souls</small></div></div>`;
+  }
+  s += `</div>`;
+
+  // Biggest counters
+  const cross = [];
+  for (const a of slots) if (a != null) for (const b of enemy) if (b != null) {
+    const c = counterMap.get(key(a, b)); if (!c) continue;
+    const n = c[2], winsA = a < b ? c[3] : n - c[3], expA = a < b ? c[4] : n - c[4];
+    cross.push({ a, b, v: 100 * (sig(counter(a, b)) - 0.5), n, winsA, expA });
+  }
+  cross.sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
+  if (cross.length) {
+    const top = cross.slice(0, 8), mx = Math.max(0.5, ...top.map(x => Math.abs(x.v)));
+    s += `<h3 style="margin-top:6px">Biggest counters</h3><p class="hint">Your hero against theirs: + means your hero's team has won more than both line-ups predict when these two met.</p><div class="list">` +
+      top.map(x => `<div class="li"><div class="who">${img(x.a, 26)}<span class="hint">vs</span>${img(x.b, 26)}<span class="t">${esc(H[x.a].name)} vs ${esc(H[x.b].name)}<small>${x.n.toLocaleString("en-US")} games against each other · ${esc(H[x.a].name)}'s team won ${(100 * x.winsA / x.n).toFixed(1)}%, expected ${(100 * x.expA / x.n).toFixed(1)}%</small></span></div>${bar(x.v, mx)}<div class="v ${cls(x.v)}">${fmtPts(x.v, 2)}<small>pts</small></div></div>`).join("") + `</div>`;
+  }
+
+  // Actual records of both line-ups
+  s += `<h3 style="margin-top:6px">Actual records</h3><div class="record">${recordHtml(slots, "Your team")}${recordHtml(enemy, "Enemy team")}</div>`;
+  body.innerHTML = s;
+}
+
+function renderSideNote() {
+  $("#side-note").innerHTML = side === "A" ? `Picking for <b class="a">your team</b> (${LANES[laneOf(active)]}). Click an enemy slot to pick for them.` : `Picking for the <b class="b">enemy team</b> (${LANES[laneOf(activeE)]}). Click one of your slots to pick for your team.`;
 }
 
 function renderResult() {
@@ -517,6 +729,7 @@ function renderResult() {
   const n = slots.filter(s => s != null).length;
   $("#big").innerHTML = `${(100 * pAll).toFixed(1)}<small>%</small>`;
   $("#big-note").textContent = n === 6 ? "All six picked." : `${n} of 6 picked; empty slots count as an average hero.`;
+  $("#actual-you").innerHTML = recordHtml(slots, "Actual record");
   const steps = [
     ["Heroes on their own", "each hero's strength, added up", 100 * (pBase - 0.5)],
     ["Pair synergy", `${n * (n - 1) / 2} of 15 pairs`, 100 * (pSyn - pBase)],
@@ -577,18 +790,21 @@ function renderPicks() {
   const synOnly = $("#syn-only").checked, m = D.model.syn_mean;
   const cur = slots.slice(); cur[active] = null;
   const before = score(cur);
-  const cands = H.map((_, h) => h).filter(h => !cur.includes(h)).map(h => {
+  const vsE = hasEnemy();
+  const cands = H.map((_, h) => h).filter(h => !cur.includes(h) && !enemy.includes(h)).map(h => {
     const t = cur.slice(); t[active] = h;
     const sc = score(t);
-    const own = 100 * (sig(before.total - m + H[h].strength) - sig(before.total - m));
-    const all = 100 * (sig(sc.total - m) - sig(before.total - m));
+    // Against an enemy: chance to beat them, so counters count; otherwise vs an average team.
+    const b0 = vsE ? Math.log(h2hProb(cur, enemy) / (1 - h2hProb(cur, enemy))) : before.total - m;
+    const own = 100 * (sig(b0 + H[h].strength) - sig(b0));
+    const all = vsE ? 100 * (h2hProb(t, enemy) - sig(b0)) : 100 * (sig(sc.total - m) - sig(before.total - m));
     return { h, own, syn: all - own, all };
   });
   cands.sort((a, b) => synOnly ? b.syn - a.syn : b.all - a.all);
   const top = cands.slice(0, 10);
   const max = Math.max(1, ...top.map(c => Math.max(Math.abs(c.own) + Math.abs(c.syn), Math.abs(c.all))));
   const k = laneOf(active), mate = slots[partnerSlot(active)];
-  $("#picks-for").innerHTML = `For <b>${LANES[k]}</b>${mate != null ? ` next to <b>${esc(H[mate].name)}</b>` : ""}${slots[active] != null ? `, replacing <b>${esc(H[slots[active]].name)}</b>` : ""}: heroes ranked by the team's win chance with them in that slot. Click one to add it.`;
+  $("#picks-for").innerHTML = `For <b>${LANES[k]}</b>${mate != null ? ` next to <b>${esc(H[mate].name)}</b>` : ""}${slots[active] != null ? `, replacing <b>${esc(H[slots[active]].name)}</b>` : ""}: heroes ranked by ${vsE ? "your chance to beat the enemy team (counters included)" : "the team's win chance"} with them in that slot. Click one to add it.`;
   const pct = v => 50 * v / max;
   $("#pick-list").innerHTML = top.map(c => {
     // Own strength bar starts at the centre; the synergy bar continues from where it ends.
@@ -600,7 +816,7 @@ function renderPicks() {
       <div class="v ${cls(sv)}">${fmtPts(sv, 2)}<small>pts</small></div></div>`;
   }).join("");
   for (const row of $("#pick-list").children) {
-    const go = () => place(+row.dataset.h);
+    const go = () => { side = "A"; place(+row.dataset.h); };
     row.addEventListener("click", go);
     row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   }
@@ -631,10 +847,10 @@ function renderExplore() {
 // ---------- team profile ----------
 // Raw team value per dimension (the units the percentile table uses): souls for laning, the
 // fitted units (kills / structures) for linear rows, log-odds for the chance rows.
-function profRaw(key) {
-  if (key === "laning") return [0, 1, 2].reduce((a, k) => a + laneGap(slots, k).total, 0);
-  if (key === "scaling") return slots.reduce((a, h) => a + (h == null ? 0 : H[h].profile.long - H[h].profile.fast), 0);
-  return slots.reduce((a, h) => a + (h == null ? 0 : H[h].profile[key]), 0);
+function profRaw(key, sl = slots) {
+  if (key === "laning") return [0, 1, 2].reduce((a, k) => a + laneGap(sl, k).total, 0);
+  if (key === "scaling") return sl.reduce((a, h) => a + (h == null ? 0 : H[h].profile.long - H[h].profile.fast), 0);
+  return sl.reduce((a, h) => a + (h == null ? 0 : H[h].profile[key]), 0);
 }
 function heroRaw(h, key) {
   if (key === "laning") return H[h].lane_souls;
@@ -671,6 +887,7 @@ function renderProfile() {
       <div class="pct" role="img" aria-label="${d.name}: ${ordinal(pct)} percentile among real teams">
         <div class="rail" ${isScale ? 'style="background:linear-gradient(90deg,var(--line),var(--line))"' : ""}></div>
         <div class="q" style="left:25%"></div><div class="q" style="left:50%"></div><div class="q" style="left:75%"></div>
+        ${hasEnemy() ? `<div class="mk" style="left:${pctOf(d, profRaw(d.key, enemy)).toFixed(1)}%;background:var(--surface);box-shadow:0 0 0 2.5px var(--bad);width:14px;height:14px;margin-left:-7px;top:6px;border:0" title="Enemy team: ${ordinal(pctOf(d, profRaw(d.key, enemy)))} percentile"></div>` : ""}
         <div class="mk ${cls2}" style="left:${pct.toFixed(1)}%"></div><div class="ends">${ends}</div></div>
       <div class="v ${isScale ? "" : cls(show.v * (d.unit === "souls" ? 0.01 : 1))}">${show.txt(show.v)}<small>${show.sub} · ${ordinal(pct)} pct</small></div></div>`;
   }).join("");
@@ -690,6 +907,7 @@ function renderProfile() {
     txt += weak.length ? `Weaknesses: <b class="neg">${weak.map(r => r.d.name.toLowerCase()).join(", ")}</b>. ` : `No clear weaknesses; weakest at <b>${byPct.at(-1).d.name.toLowerCase()}</b> (${ordinal(byPct.at(-1).pct)} percentile). `;
     txt += `The line-up ${lean}.`;
     if (n < 6) txt += ` <span class="hint">(${n} of 6 picked; empty slots count as average.)</span>`;
+    if (hasEnemy()) txt += ` <span class="hint">Hollow red rings show the enemy team.</span>`;
   }
   $("#prof-sum").innerHTML = txt;
 
@@ -710,6 +928,54 @@ function renderProfile() {
     s += "</tr>";
   }
   $("#who-grid").innerHTML = s + "</tbody></table>";
+}
+
+// ---------- top 10 teams ----------
+const TOP_CATS = [
+  ["win", "Overall win chance"], ["actual", "Actual win rate"], ["laning", "Laning"], ["fights", "Fights"],
+  ["structures", "Structures"], ["midboss", "Mid-boss"], ["fast", "Short games"], ["long", "Long games"], ["scaling", "Late scaling"],
+];
+let topCat = "win";
+function topValue(cat, v) {
+  if (cat === "win") return [`${(100 * v).toFixed(1)}%`, "win chance vs average"];
+  if (cat === "actual") return [`${(100 * v).toFixed(1)}%`, "record, adjusted for games"];
+  if (cat === "laning") return [fmtSouls(v), "souls at 15:00"];
+  if (cat === "fights") return [fmtPts(v, 2), "kills, 15:00–25:00"];
+  if (cat === "structures") return [fmtPts(v, 2), "structures by 20:00"];
+  if (cat === "scaling") return [`${fmtPts(100 * (sig(v / 2) - sig(-v / 2)))} pts`, "late vs early"];
+  return [`${fmtPts(100 * (sig(v) - 0.5))} pts`, cat === "midboss" ? "first mid-boss chance" : "win chance in these games"];
+}
+function renderTop() {
+  const mo = D.model;
+  $("#top-intro").textContent = `The best real line-ups in each category: only exact six-hero teams that were played at least ${mo.top_min_games} times (${mo.top_pool.toLocaleString("en-US")} teams), so every one has its own record to check against. Model values are against an average team; laning and overall win chance use each team's best lane split, which is also the split that loads.`;
+  $("#cats").innerHTML = TOP_CATS.map(([k, nm]) => `<button type="button" data-cat="${k}" aria-pressed="${k === topCat}">${nm}</button>`).join("");
+  $("#cats").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { topCat = b.dataset.cat; renderTop(); }));
+  const notes = {
+    win: "Ranked by the model's win chance vs an average team: hero strengths, pair synergy and lane partners.",
+    actual: "Ranked by the real record, pulled toward 50% by 50 imaginary games so small samples don't dominate. Compare it with the model's expectation in the next column.",
+    laning: "Ranked by the team's expected soul lead at 15:00 with its best lane split. Watch the records: strong laning alone doesn't guarantee wins.",
+    scaling: "Ranked by how much more the team wins long games than short ones, whatever its overall strength.",
+  };
+  $("#top-note").textContent = notes[topCat] || "Ranked by the team's summed hero effects in this category (teammates and enemies controlled for).";
+  const rows = D.top_teams[topCat];
+  $("#tops").innerHTML = rows.map((r, i) => {
+    const [val, sub] = topValue(topCat, r.v);
+    const duos = [0, 1, 2].map(k => `<span class="duo2" title="${LANES[k]}">${img(r.h[2 * k], 30)}${img(r.h[2 * k + 1], 30)}</span>`).join("");
+    const names = [0, 1, 2].map(k => `${esc(H[r.h[2 * k]].name)} + ${esc(H[r.h[2 * k + 1]].name)}`).join(" · ");
+    const act = 100 * r.w / r.n, exp = 100 * r.e / r.n;
+    return `<div class="trow"><div class="rk">${i + 1}</div>
+      <div class="six">${duos}<div class="names">${names}</div></div>
+      <div class="val">${val}<small>${sub}</small></div>
+      <div class="rec2"><span class="${act - exp >= 0 ? "pos" : "neg"}">${act.toFixed(0)}%</span> actual<small>${r.w}–${r.n - r.w} in ${r.n} games · expected ${exp.toFixed(0)}%</small></div>
+      <div class="acts"><button type="button" data-i="${i}" data-side="A">Load as mine</button><button type="button" data-i="${i}" data-side="B">as enemy</button></div></div>`;
+  }).join("");
+  $("#tops").querySelectorAll(".acts button").forEach(b => b.addEventListener("click", () => {
+    const r = rows[+b.dataset.i], sd = b.dataset.side;
+    if (sd === "A") { slots = r.h.slice(); enemy = enemy.map(h => slots.includes(h) ? null : h); active = 0; }
+    else { enemy = r.h.slice(); slots = slots.map(h => enemy.includes(h) ? null : h); activeE = 0; }
+    side = sd; update();
+    document.querySelector(sd === "A" ? "#build-h" : "#h2h-h").scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
 }
 
 // ---------- what each hero adds ----------
@@ -973,31 +1239,44 @@ function chartLane() {
 
 // ---------- state in the URL ----------
 function saveHash() {
-  const ids = slots.map(h => h == null ? 0 : H[h].id).join(".");
-  history.replaceState(null, "", ids === "0.0.0.0.0.0" ? location.pathname : `#t=${ids}`);
+  const ids = arr => arr.map(h => h == null ? 0 : H[h].id).join(".");
+  const parts = [];
+  if (slots.some(x => x != null)) parts.push(`t=${ids(slots)}`);
+  if (enemy.some(x => x != null)) parts.push(`e=${ids(enemy)}`);
+  history.replaceState(null, "", parts.length ? `#${parts.join("&")}` : location.pathname);
 }
 function loadHash() {
-  const m = location.hash.match(/t=([\d.]+)/);
-  if (!m) return;
-  const ids = m[1].split(".").map(Number);
-  slots = [0, 1, 2, 3, 4, 5].map(i => byId.has(ids[i]) ? byId.get(ids[i]) : null);
-  slots = slots.map((h, i) => h != null && slots.indexOf(h) === i ? h : null);
+  const read = name => {
+    const m = location.hash.match(new RegExp(name + "=([\\d.]+)"));
+    if (!m) return [null, null, null, null, null, null];
+    const ids = m[1].split(".").map(Number);
+    const arr = [0, 1, 2, 3, 4, 5].map(i => byId.has(ids[i]) ? byId.get(ids[i]) : null);
+    return arr.map((h, i) => h != null && arr.indexOf(h) === i ? h : null);
+  };
+  slots = read("t");
+  enemy = read("e").map(h => slots.includes(h) ? null : h);   // never the same hero on both teams
   const e = slots.indexOf(null); active = e >= 0 ? e : 0;
+  const f = enemy.indexOf(null); activeE = f >= 0 ? f : 0;
 }
 
 function update() {
-  renderLanes(); renderRoster(); renderResult(); renderMembers(); renderProfile(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderSplits(); renderPairs(); renderPicks(); saveHash();
+  renderLanes(); renderSideNote(); renderRoster(); renderResult(); renderH2H(); renderMembers(); renderProfile(); renderTeamGraph(); renderNetwork(); renderLaneList(); renderSplits(); renderPairs(); renderPicks(); saveHash();
 }
 
-function greedyFill() {
-  for (let s of [0, 1, 2, 3, 4, 5]) {
-    if (slots[s] != null) continue;
-    active = s;
+function greedyFill(sd = "A") {
+  // Fill the empty slots one by one with the hero that helps that team most: vs the other team
+  // when it has heroes (so the enemy fill is a counter-pick), else vs an average team.
+  const keep = side; side = sd;
+  const arr = sd === "A" ? slots : enemy;
+  for (const s of [0, 1, 2, 3, 4, 5]) {
+    if (arr[s] != null) continue;
+    if (sd === "A") active = s; else activeE = s;
     let best = null, bv = -1;
-    for (let h = 0; h < H.length; h++) if (!slots.includes(h)) { const v = fitScore(h); if (v > bv) { bv = v; best = h; } }
-    slots[s] = best;
+    for (let h = 0; h < H.length; h++) if (!slots.includes(h) && !enemy.includes(h)) { const v = fitScore(h); if (v > bv) { bv = v; best = h; } }
+    arr[s] = best;
   }
-  active = 0;
+  if (sd === "A") active = 0; else activeE = 0;
+  side = keep;
   update();
 }
 
@@ -1007,6 +1286,7 @@ async function main() {
   byId = new Map(H.map((h, i) => [h.id, i]));
   pairMap = new Map(D.pairs.map(p => [key(p[0], p[1]), p]));
   laneMap = new Map(D.lane_pairs.map(p => [key(p[0], p[1]), p]));
+  counterMap = new Map(D.counters.map(p => [key(p[0], p[1]), p]));
   const w = D.window, mo = D.model;
   const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   $("#scope").textContent = `${w.matches.toLocaleString("en-US")} matches, ${fmtDate(w.from)} – ${fmtDate(w.to)} · ${w.modes} · ${H.length} heroes · built ${fmtDate(D.built)}`;
@@ -1029,7 +1309,9 @@ async function main() {
     `Lane partners: sharing a lane adds almost nothing to win chance beyond the pair's whole-match synergy (held-out log-loss gain ${lw.gain.toFixed(6)}, against ${best.gain.toFixed(5)} for pair synergy), so that step stays tiny. Where heroes lane shows up mainly in the souls at 15:00.`,
     `Lane strength and duo synergy in souls come from a linear model of each lane's 15:00 soul gap (duo vs the duo it faced), using only matches that reached 15 minutes. Souls at 15:00 include early rotations and jungle, not just the lane.`,
     `Team profile: every dimension was fitted on half the matches and checked on the other half; what happened tracked the prediction with slopes of ${D.model.profile.filter(p => p.slope != null && p.key !== "laning").map(p => p.slope.toFixed(2)).join(", ")} (1 = exactly as predicted). Scaling holds up too: in held-out long games it lifted the win chance (slope ${D.model.profile.at(-1).check.long.slope.toFixed(2)}), in short games it lowered it (${D.model.profile.at(-1).check.short.slope.toFixed(2)}), beyond what hero strength predicts. Short and long games say which games a line-up tends to win, not why.`,
-    `This shows what has gone together with winning, not proof of cause. Duos who queue together, skill gaps and counter-picks against the enemy aren't separated out. Unranked games are included.`,
+    `Counters: for every hero against every enemy hero (36 pairs a match), wins against what both line-ups' strengths and synergy predicted, shrunk toward zero (fitted scale ${mo.counters.scale}). On held-out matches they improved predictions more than pair synergy did (log-loss gain ${mo.counters.gain.toFixed(5)} vs ${best.gain.toFixed(5)}); line-ups in the best tenth for counters beat the worst tenth by about ${(100 * (mo.counters.counter_calibration.at(-1).actual - mo.counters.counter_calibration[0].actual)).toFixed(1)} points. Lane counters (each hero against the two enemies in its lane) explain about ${(100 * mo.lane_counters.r2_gain).toFixed(1)}% of the 15:00 soul gap on top of lane strengths.`,
+    `Actual records come from exact six-hero teams with at least ${mo.teams_min_games} games, any lane split; "expected" is what the full model predicted against the opponents each team actually met. Small samples wobble a lot.`,
+    `This shows what has gone together with winning, not proof of cause. Duos who queue together and skill gaps aren't separated out. Unranked games are included.`,
   ].map(t => `<li>${t}</li>`).join("");
   chartSyn(); chartLane();
   $("#net-n").addEventListener("input", e => { $("#net-n-v").textContent = e.target.value; renderNetwork(); });
@@ -1047,16 +1329,23 @@ async function main() {
   $("#search").addEventListener("input", renderRoster);
   $("#sort").addEventListener("change", renderRoster);
   $("#syn-only").addEventListener("change", renderPicks);
-  $("#btn-clear").addEventListener("click", () => { slots = slots.map(() => null); active = 0; update(); });
-  $("#btn-best").addEventListener("click", greedyFill);
+  $("#btn-clear").addEventListener("click", () => { slots = slots.map(() => null); active = 0; side = "A"; update(); });
+  $("#btn-best").addEventListener("click", () => greedyFill("A"));
   $("#btn-random").addEventListener("click", () => {
-    const pool = [...H.keys()].sort(() => Math.random() - 0.5);
-    slots = pool.slice(0, 6); active = 0; update();
+    const pool = [...H.keys()].filter(h => !enemy.includes(h)).sort(() => Math.random() - 0.5);
+    slots = pool.slice(0, 6); active = 0; side = "A"; update();
   });
+  $("#btn-e-counter").addEventListener("click", () => greedyFill("B"));
+  $("#btn-e-random").addEventListener("click", () => {
+    const pool = [...H.keys()].filter(h => !slots.includes(h)).sort(() => Math.random() - 0.5);
+    enemy = pool.slice(0, 6); activeE = 0; side = "B"; update();
+  });
+  $("#btn-e-clear").addEventListener("click", () => { enemy = enemy.map(() => null); activeE = 0; side = "B"; update(); });
   loadHash();
   const first = [...H.keys()].sort((a, b) => H[a].name.localeCompare(H[b].name))[0];
   sel.value = slots.find(s => s != null) ?? first;
   renderExplore();
+  renderTop();
   update();
 }
 main().catch(err => { $("#scope").textContent = "Couldn't load data.json: " + err.message; });
